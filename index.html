@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Malla PUCV</title>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    :root {
+      --cafe: #604734;
+      --crema: #fcf7d9;
+      --rosa-disponible: #faece8;
+      --rosa-aprobado: #f0c5d4;
+      --rosa-bloqueado: #fff7f9;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      background-color: var(--crema);
+      color: var(--cafe);
+      font-family: "Poppins", sans-serif;
+    }
+
+    h1 {
+      margin: 0 0 40px;
+      color: var(--cafe);
+      font-family: "DM Serif Display", serif;
+      font-size: 42px;
+      font-style: italic;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    /* ========================= */
+    /* PROGRESO GENERAL */
+    /* ========================= */
+
+    .progreso {
+      max-width: 850px;
+      margin: 0 auto 28px;
+      padding: 22px;
+      background-color: var(--rosa-disponible);
+      border: 2px solid var(--cafe);
+      border-radius: 20px;
+    }
+
+    .resumen-general {
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .resumen-general span {
+      display: inline-block;
+      padding: 7px 13px;
+      background-color: var(--crema);
+      border: 1.5px solid var(--cafe);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+    }
+
+    .resumen-general span.malla-completa {
+      background-color: var(--rosa-aprobado);
+      font-weight: 700;
+    }
+
+    .progreso-info {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .progreso-info span {
+      font-weight: 700;
+    }
+
+    .barra-fondo {
+      width: 100%;
+      height: 16px;
+      overflow: hidden;
+      background-color: var(--rosa-bloqueado);
+      border: 1px solid var(--cafe);
+      border-radius: 999px;
+    }
+
+    .barra-progreso {
+      width: 0%;
+      height: 100%;
+      background-color: var(--rosa-aprobado);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .leyenda {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .muestra {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 5px;
+    }
+
+    .muestra.disponible {
+      background-color: var(--rosa-disponible);
+      border: 1.5px solid var(--cafe);
+    }
+
+    .muestra.aprobado {
+      background-color: var(--rosa-aprobado);
+      border: 1.5px solid var(--cafe);
+    }
+
+    .muestra.bloqueado {
+      background-color: var(--rosa-bloqueado);
+      border: 1.5px dashed var(--rosa-aprobado);
+      opacity: 0.75;
+    }
+
+    .ayuda-interaccion {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.65;
+    }
+
+    .reiniciar-progreso {
+      display: block;
+      margin: 0 auto 34px;
+      padding: 9px 16px;
+      background-color: transparent;
+      border: 1.5px solid var(--cafe);
+      border-radius: 999px;
+      color: var(--cafe);
+      font-family: "Poppins", sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .reiniciar-progreso:hover {
+      background-color: var(--rosa-aprobado);
+      transform: translateY(-2px);
+    }
+
+    .reiniciar-progreso:focus-visible,
+    .cerrar-modal:focus-visible {
+      outline: 3px solid rgba(96, 71, 52, 0.25);
+      outline-offset: 3px;
+    }
+
+    /* ========================= */
+    /* MALLA */
+    /* ========================= */
+
+    .malla {
+      display: flex;
+      gap: 25px;
+      align-items: flex-start;
+      overflow-x: auto;
+      padding: 2px 0 20px;
+      scrollbar-color: var(--rosa-aprobado) transparent;
+    }
+
+    .semestre {
+      width: 270px;
+      flex-shrink: 0;
+    }
+
+    .semestre h2 {
+      margin: 0 0 20px;
+      color: var(--cafe);
+      font-family: "DM Serif Display", serif;
+      font-size: 24px;
+      font-weight: 400;
+      text-align: center;
+    }
+
+    .semestre-progreso {
+      margin: -12px 0 16px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.7;
+      transition:
+        background-color 0.2s ease,
+        opacity 0.2s ease;
+    }
+
+    .semestre.completado .semestre-progreso {
+      width: fit-content;
+      margin: -12px auto 16px;
+      padding: 5px 10px;
+      background-color: var(--rosa-aprobado);
+      border-radius: 999px;
+      font-weight: 600;
+      opacity: 1;
+    }
+
+    .semestre.completado h2 {
+      font-style: italic;
+    }
+
+    /* ========================= */
+    /* RAMOS */
+    /* ========================= */
+
+    .ramo {
+      margin-bottom: 14px;
+      padding: 17px;
+      background-color: var(--rosa-disponible);
+      border: 2px solid var(--cafe);
+      border-radius: 16px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      transition:
+        transform 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        opacity 0.2s ease;
+    }
+
+    .ramo:hover {
+      transform: translateY(-3px);
+    }
+
+    .ramo.aprobado {
+      background-color: var(--rosa-aprobado);
+      border-color: var(--cafe);
+    }
+
+    .ramo.bloqueado {
+      background-color: var(--rosa-bloqueado);
+      border: 2px dashed var(--rosa-aprobado);
+      color: var(--cafe);
+      cursor: not-allowed;
+      opacity: 0.65;
+    }
+
+    .ramo.bloqueado:hover {
+      transform: none;
+    }
+
+    .codigo {
+      color: var(--cafe);
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.7;
+    }
+
+    .nombre {
+      margin-top: 6px;
+      color: var(--cafe);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .creditos {
+      margin-top: 8px;
+      color: var(--cafe);
+      font-size: 12px;
+      font-weight: 400;
+      opacity: 0.75;
+    }
+
+    /* ========================= */
+    /* MODAL DE DETALLES */
+    /* ========================= */
+
+    .modal-fondo {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: rgba(96, 71, 52, 0.25);
+      backdrop-filter: blur(2px);
+    }
+
+    .modal-fondo[hidden] {
+      display: none;
+    }
+
+    .modal-ramo {
+      position: relative;
+      width: min(380px, 92vw);
+      max-height: min(620px, 85vh);
+      overflow-y: auto;
+      padding: 24px;
+      background-color: var(--crema);
+      border: 2px solid var(--cafe);
+      border-radius: 20px;
+      box-shadow: 0 12px 35px rgba(96, 71, 52, 0.18);
+    }
+
+    .modal-ramo h3 {
+      margin: 5px 35px 15px 0;
+      font-family: "DM Serif Display", serif;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .cerrar-modal {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      padding: 2px 6px;
+      background: none;
+      border: none;
+      color: var(--cafe);
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .detalle-codigo {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.65;
+    }
+
+    .modal-info {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .modal-info span {
+      padding: 6px 10px;
+      background-color: var(--rosa-disponible);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .estado-aprobado {
+      background-color: var(--rosa-aprobado) !important;
+    }
+
+    .estado-disponible {
+      background-color: var(--rosa-disponible) !important;
+      border: 1px solid rgba(96, 71, 52, 0.3);
+    }
+
+    .estado-bloqueado {
+      background-color: var(--rosa-bloqueado) !important;
+      border: 1px dashed var(--rosa-aprobado);
+      opacity: 0.8;
+    }
+
+    .modal-requisitos {
+      padding-top: 14px;
+      border-top: 1px solid rgba(96, 71, 52, 0.2);
+    }
+
+    .modal-requisitos > strong {
+      font-size: 13px;
+    }
+
+    .lista-requisitos {
+      display: grid;
+      gap: 7px;
+      margin-top: 9px;
+    }
+
+    .requisito-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .requisito-item.cumplido {
+      background-color: var(--rosa-aprobado);
+    }
+
+    .requisito-item.faltante {
+      background-color: var(--rosa-bloqueado);
+      border: 1px dashed var(--rosa-aprobado);
+    }
+
+    .requisito-simbolo {
+      flex: 0 0 auto;
+      font-weight: 700;
+    }
+
+    .sin-requisitos {
+      margin: 8px 0 0;
+      font-size: 12px;
+      opacity: 0.72;
+    }
+
+    .detalle-faltantes {
+      margin: 10px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* ========================= */
+    /* RESPONSIVE CELULAR */
+    /* ========================= */
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 14px;
+      }
+
+      h1 {
+        margin-bottom: 28px;
+        font-size: 34px;
+      }
+
+      .progreso {
+        margin-bottom: 24px;
+        padding: 18px;
+      }
+
+      .progreso-info {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .leyenda {
+        gap: 12px;
+      }
+
+      .reiniciar-progreso {
+        margin-bottom: 28px;
+      }
+
+      .malla {
+        gap: 16px;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 2px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .semestre {
+        width: calc(100vw - 60px);
+        scroll-snap-align: start;
+      }
+
+      .modal-ramo {
+        width: 100%;
+        max-width: 340px;
+        padding: 20px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Pedagogía en Inglés</h1>
+
+  <section class="progreso" aria-label="Resumen de progreso">
+    <div class="resumen-general">
+      <span id="resumenSemestre">Calculando avance...</span>
+    </div>
+
+    <div class="progreso-info">
+      <div>
+        <span id="ramosAprobados">0</span>
+        de
+        <span id="ramosTotales">0</span>
+        ramos aprobados
+      </div>
+
+      <div>
+        <span id="creditosAprobados">0</span>
+        de
+        <span id="creditosTotales">0</span>
+        créditos
+      </div>
+
+      <div>
+        <span id="porcentaje">0%</span>
+        completado
+      </div>
+    </div>
+
+    <div
+      class="barra-fondo"
+      id="barraFondo"
+      role="progressbar"
+      aria-label="Progreso de la malla"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <div
+        class="barra-progreso"
+        id="barraProgreso"
+      ></div>
+    </div>
+
+    <div class="leyenda">
+      <div class="leyenda-item">
+        <span class="muestra disponible"></span>
+        Disponible
+      </div>
+
+      <div class="leyenda-item">
+        <span class="muestra aprobado"></span>
+        Aprobado
+      </div>
+
+      <div class="leyenda-item">
+        <span class="muestra bloqueado"></span>
+        Bloqueado
+      </div>
+    </div>
+
+    <div class="ayuda-interaccion">
+      1 clic: aprobar/desaprobar · doble clic: ver detalles
+    </div>
+  </section>
+
+  <button
+    type="button"
+    class="reiniciar-progreso"
+    id="reiniciarProgreso"
+  >
+    Reiniciar progreso
+  </button>
+
+  <div
+    class="modal-fondo"
+    id="modalFondo"
+    hidden
+  >
+    <section
+      class="modal-ramo"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="detalleNombre"
+    >
+      <button
+        type="button"
+        class="cerrar-modal"
+        id="cerrarDetalle"
+        aria-label="Cerrar detalles"
+      >
+        ×
+      </button>
+
+      <div
+        class="detalle-codigo"
+        id="detalleCodigo"
+      ></div>
+
+      <h3 id="detalleNombre"></h3>
+
+      <div class="modal-info">
+        <span id="detalleCreditos"></span>
+        <span id="detalleEstado"></span>
+      </div>
+
+      <div class="modal-requisitos">
+        <strong>Prerrequisitos</strong>
+
+        <div
+          class="lista-requisitos"
+          id="detalleRequisitos"
+        ></div>
+
+        <p
+          class="detalle-faltantes"
+          id="detalleFaltantes"
+        ></p>
+      </div>
+    </section>
+  </div>
+
+  <div class="malla">
+
+    <!-- ========================= -->
+    <!-- PRIMER SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>1° Semestre</h2>
+
+      <div class="ramo" data-id="LCL105">
+        <div class="codigo">LCL105</div>
+        <div class="nombre">Pronunciación en Inglés</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="LCL121">
+        <div class="codigo">LCL121</div>
+        <div class="nombre">Inglés Nivel Principiante</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="LCL123">
+        <div class="codigo">LCL123</div>
+        <div class="nombre">
+          Introducción a la Diversidad Cultural en el Mundo Angloparlante
+        </div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="LCL126">
+        <div class="codigo">LCL126</div>
+        <div class="nombre">
+          Taller de Comunicación Escrita en Castellano
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="IER010">
+        <div class="codigo">IER010</div>
+        <div class="nombre">Antropología Cristiana</div>
+        <div class="creditos">2 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SEGUNDO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>2° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL135"
+        data-requisitos="LCL121"
+      >
+        <div class="codigo">LCL135</div>
+        <div class="nombre">Inglés Nivel Pre-Intermedio</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL138"
+        data-requisitos="LCL121"
+      >
+        <div class="codigo">LCL138</div>
+        <div class="nombre">Gramática Inglesa 1</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="LCL139">
+        <div class="codigo">LCL139</div>
+        <div class="nombre">
+          Prácticas de Lectura y Literatura Juvenil
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="LCL145">
+        <div class="codigo">LCL145</div>
+        <div class="nombre">Lenguaje, Cognición y Sociedad</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="IER020">
+        <div class="codigo">IER020</div>
+        <div class="nombre">Ética Cristiana</div>
+        <div class="creditos">2 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- TERCER SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>3° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL207"
+        data-requisitos="LCL121"
+      >
+        <div class="codigo">LCL207</div>
+        <div class="nombre">
+          Introducción a la Didáctica del Inglés
+        </div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL216"
+        data-requisitos="LCL135"
+      >
+        <div class="codigo">LCL216</div>
+        <div class="nombre">Inglés Nivel Intermedio</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL218"
+        data-requisitos="LCL138"
+      >
+        <div class="codigo">LCL218</div>
+        <div class="nombre">Gramática Inglesa 2</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL266"
+        data-requisitos="LCL121"
+      >
+        <div class="codigo">LCL266</div>
+        <div class="nombre">Composición Escrita en Inglés 1</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL268"
+        data-requisitos="LCL135"
+      >
+        <div class="codigo">LCL268</div>
+        <div class="nombre">
+          Modelos de Adquisición de una Lengua Extranjera
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- CUARTO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>4° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="EPE1320"
+        data-requisitos="LCL207"
+      >
+        <div class="codigo">EPE1320</div>
+        <div class="nombre">Educar en y para la Diversidad</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL263"
+        data-requisitos="LCL216,LCL105"
+      >
+        <div class="codigo">LCL263</div>
+        <div class="nombre">Inglés Nivel Intermedio Avanzado</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="PRA101-70"
+        data-requisitos="LCL207"
+      >
+        <div class="codigo">PRA101-70</div>
+        <div class="nombre">Práctica Docente Inicial</div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="PSI331"
+        data-requisitos="LCL207"
+      >
+        <div class="codigo">PSI331</div>
+        <div class="nombre">
+          Taller de Aprendizaje y Desarrollo Adolescente
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- QUINTO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>5° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="EPE1118"
+        data-requisitos="PRA101-70"
+      >
+        <div class="codigo">EPE1118</div>
+        <div class="nombre">
+          Fundamentos Filosóficos y Sociales de la Educación
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL264"
+        data-requisitos="LCL218,LCL145"
+      >
+        <div class="codigo">LCL264</div>
+        <div class="nombre">Gramática Inglesa 3</div>
+        <div class="creditos">2 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL272"
+        data-requisitos="LCL263"
+      >
+        <div class="codigo">LCL272</div>
+        <div class="nombre">Inglés Nivel Avanzado 1</div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL273"
+        data-requisitos="LCL216,LCL266,LCL126"
+      >
+        <div class="codigo">LCL273</div>
+        <div class="nombre">Composición Escrita en Inglés 2</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL466"
+        data-requisitos="LCL216,LCL139,LCL123"
+      >
+        <div class="codigo">LCL466</div>
+        <div class="nombre">
+          Literaturas en Contacto en Lengua Inglesa
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SEXTO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>6° Semestre</h2>
+
+      <div class="ramo" data-id="PSI275">
+        <div class="codigo">PSI275</div>
+        <div class="nombre">
+          Psicología Social Aplicada en la Escuela y su Comunidad
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="EPE1303">
+        <div class="codigo">EPE1303</div>
+        <div class="nombre">Teoría y Planificación Curricular</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL327"
+        data-requisitos="LCL268"
+      >
+        <div class="codigo">LCL327</div>
+        <div class="nombre">
+          Teorías y Modelos de Comprensión y Producción
+        </div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL625"
+        data-requisitos="LCL272"
+      >
+        <div class="codigo">LCL625</div>
+        <div class="nombre">Inglés Nivel Avanzado 2</div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL628"
+        data-requisitos="LCL263,LCL105"
+      >
+        <div class="codigo">LCL628</div>
+        <div class="nombre">Fonética y Fonología Inglesa</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL629"
+        data-requisitos="PRA101-70"
+      >
+        <div class="codigo">LCL629</div>
+        <div class="nombre">
+          Planificación de Secuencias Didácticas en Inglés
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- SÉPTIMO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>7° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="EPE1302"
+        data-requisitos="EPE1303"
+      >
+        <div class="codigo">EPE1302</div>
+        <div class="nombre">
+          Evaluación del y para el Aprendizaje
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL308"
+        data-requisitos="LCL264"
+      >
+        <div class="codigo">LCL308</div>
+        <div class="nombre">Géneros del Discurso</div>
+        <div class="creditos">2 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL630"
+        data-requisitos="LCL263"
+      >
+        <div class="codigo">LCL630</div>
+        <div class="nombre">
+          Inglés para la Comunicación en el Aula
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL633"
+        data-requisitos="PSI275,LCL629"
+      >
+        <div class="codigo">LCL633</div>
+        <div class="nombre">
+          Didáctica del Manejo del Aula Diversa en Inglés
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="PRA301-70"
+        data-requisitos="PSI331,LCL629,LCL263,PRA101-70,EPE1303"
+      >
+        <div class="codigo">PRA301-70</div>
+        <div class="nombre">Práctica Docente Intermedia</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- OCTAVO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>8° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="EPE1130"
+        data-requisitos="PRA301-70"
+      >
+        <div class="codigo">EPE1130</div>
+        <div class="nombre">Identidad Profesional Docente</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="EPE1342"
+        data-requisitos="PRA301-70"
+      >
+        <div class="codigo">EPE1342</div>
+        <div class="nombre">
+          Investigación Educativa y Pedagógica
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div class="ramo" data-id="EPE1400">
+        <div class="codigo">EPE1400</div>
+        <div class="nombre">
+          Políticas Públicas Educativas y Gestión Escolar
+        </div>
+        <div class="creditos">2 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL634"
+        data-requisitos="LCL628,LCL625"
+      >
+        <div class="codigo">LCL634</div>
+        <div class="nombre">
+          Inglés Oral con Propósitos Profesionales
+        </div>
+        <div class="creditos">4 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL635"
+        data-requisitos="LCL466,LCL272"
+      >
+        <div class="codigo">LCL635</div>
+        <div class="nombre">Literatura Inglesa Clásica</div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL637"
+        data-requisitos="LCL327,EPE1302"
+      >
+        <div class="codigo">LCL637</div>
+        <div class="nombre">
+          Didáctica de la Evaluación del Aprendizaje del Inglés como Lengua Extranjera
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- NOVENO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>9° Semestre</h2>
+
+      <div class="ramo" data-id="EPE1132">
+        <div class="codigo">EPE1132</div>
+        <div class="nombre">
+          Tecnologías Digitales para el Aprendizaje y el Desarrollo Profesional Docente
+        </div>
+        <div class="creditos">2 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL638"
+        data-requisitos="LCL273,LCL625,LCL308"
+      >
+        <div class="codigo">LCL638</div>
+        <div class="nombre">
+          Inglés Escrito con Propósitos Profesionales
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL639"
+        data-requisitos="LCL637,EPE1342,EPE1130"
+      >
+        <div class="codigo">LCL639</div>
+        <div class="nombre">Proyecto de Título</div>
+        <div class="creditos">6 créditos</div>
+      </div>
+
+      <div
+        class="ramo bloqueado"
+        data-id="LCL645"
+        data-requisitos="PRA301-70"
+      >
+        <div class="codigo">LCL645</div>
+        <div class="nombre">
+          Diseño de Materiales Didácticos del Inglés para Aulas Diversas
+        </div>
+        <div class="creditos">3 créditos</div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!-- DÉCIMO SEMESTRE -->
+    <!-- ========================= -->
+
+    <div class="semestre">
+      <h2>10° Semestre</h2>
+
+      <div
+        class="ramo bloqueado"
+        data-id="PRA601-70"
+        data-requisitos="PRA301-70,EPE1302,EPE1320,EPE1342,EPE1132,LCL630,LCL633,LCL634,LCL635,LCL638,LCL639,LCL645"
+      >
+        <div class="codigo">PRA601-70</div>
+        <div class="nombre">Práctica Docente Final</div>
+        <div class="creditos">16 créditos</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+
+    const ramos = Array.from(
+      document.querySelectorAll(".ramo")
+    );
+
+    const semestres = Array.from(
+      document.querySelectorAll(".semestre")
+    );
+
+    const ramosAprobadosTexto =
+      document.getElementById("ramosAprobados");
+
+    const ramosTotalesTexto =
+      document.getElementById("ramosTotales");
+
+    const creditosAprobadosTexto =
+      document.getElementById("creditosAprobados");
+
+    const creditosTotalesTexto =
+      document.getElementById("creditosTotales");
+
+    const porcentajeTexto =
+      document.getElementById("porcentaje");
+
+    const barraProgreso =
+      document.getElementById("barraProgreso");
+
+    const barraFondo =
+      document.getElementById("barraFondo");
+
+    const resumenSemestre =
+      document.getElementById("resumenSemestre");
+
+    const reiniciarProgreso =
+      document.getElementById("reiniciarProgreso");
+
+    const modalFondo =
+      document.getElementById("modalFondo");
+
+    const detalleCodigo =
+      document.getElementById("detalleCodigo");
+
+    const detalleNombre =
+      document.getElementById("detalleNombre");
+
+    const detalleCreditos =
+      document.getElementById("detalleCreditos");
+
+    const detalleEstado =
+      document.getElementById("detalleEstado");
+
+    const detalleRequisitos =
+      document.getElementById("detalleRequisitos");
+
+    const detalleFaltantes =
+      document.getElementById("detalleFaltantes");
+
+    const cerrarDetalle =
+      document.getElementById("cerrarDetalle");
+
+    const CLAVE_GUARDADO =
+      "mallaPUCV_aprobados";
+
+    const cursosPorId =
+      new Map(
+        ramos.map(
+          ramo => [
+            ramo.dataset.id,
+            ramo
+          ]
+        )
+      );
+
+    let ultimoElementoActivo = null;
+
+    /* ========================= */
+    /* UTILIDADES */
+    /* ========================= */
+
+    function obtenerRequisitos(ramo) {
+
+      const texto =
+        ramo.dataset.requisitos ||
+        ramo.dataset.requisito ||
+        "";
+
+      return texto
+        .split(",")
+        .map(
+          codigo => codigo.trim()
+        )
+        .filter(Boolean);
+    }
+
+
+    function obtenerNombreRamo(codigo) {
+
+      const ramo =
+        cursosPorId.get(codigo);
+
+      if (!ramo) {
+        return codigo;
+      }
+
+      return ramo
+        .querySelector(".nombre")
+        .textContent
+        .trim();
+    }
+
+
+    function obtenerCreditos(ramo) {
+
+      const texto =
+        ramo
+          .querySelector(".creditos")
+          ?.textContent || "0";
+
+      const numero =
+        parseInt(texto, 10);
+
+      return Number.isNaN(numero)
+        ? 0
+        : numero;
+    }
+
+
+    function estaAprobado(codigo) {
+
+      const ramo =
+        cursosPorId.get(codigo);
+
+      return Boolean(
+        ramo &&
+        ramo.classList.contains(
+          "aprobado"
+        )
+      );
+    }
+
+    /* ========================= */
+    /* GUARDADO */
+    /* ========================= */
+
+    function guardarProgreso() {
+
+      const aprobados =
+        ramos
+          .filter(
+            ramo =>
+              ramo.classList.contains(
+                "aprobado"
+              )
+          )
+          .map(
+            ramo => ramo.dataset.id
+          );
+
+      localStorage.setItem(
+        CLAVE_GUARDADO,
+        JSON.stringify(aprobados)
+      );
+    }
+
+
+    function cargarProgreso() {
+
+      const guardado =
+        localStorage.getItem(
+          CLAVE_GUARDADO
+        );
+
+      if (!guardado) {
+        return;
+      }
+
+      let aprobados = [];
+
+      try {
+
+        aprobados =
+          JSON.parse(guardado);
+
+        if (
+          !Array.isArray(aprobados)
+        ) {
+          aprobados = [];
+        }
+
+      } catch {
+
+        aprobados = [];
+
+      }
+
+      ramos.forEach(ramo => {
+
+        ramo.classList.toggle(
+          "aprobado",
+          aprobados.includes(
+            ramo.dataset.id
+          )
+        );
+
+      });
+    }
+
+    /* ========================= */
+    /* PRERREQUISITOS */
+    /* ========================= */
+
+    function actualizarRamos() {
+
+      let huboCambios;
+
+      do {
+
+        huboCambios = false;
+
+        ramos.forEach(ramo => {
+
+          const requisitos =
+            obtenerRequisitos(ramo);
+
+          const bloqueado =
+            requisitos.length > 0 &&
+            !requisitos.every(
+              estaAprobado
+            );
+
+          ramo.classList.toggle(
+            "bloqueado",
+            bloqueado
+          );
+
+          if (
+            bloqueado &&
+            ramo.classList.contains(
+              "aprobado"
+            )
+          ) {
+
+            ramo.classList.remove(
+              "aprobado"
+            );
+
+            huboCambios = true;
+          }
+
+          ramo.title =
+            bloqueado
+              ? "Doble clic para ver qué prerrequisitos faltan"
+              : "1 clic para aprobar/desaprobar · doble clic para ver detalles";
+
+        });
+
+      } while (huboCambios);
+    }
+
+    /* ========================= */
+    /* PROGRESO */
+    /* ========================= */
+
+    function actualizarProgresoPorSemestre() {
+
+      semestres.forEach(
+        semestre => {
+
+          const ramosSemestre =
+            Array.from(
+              semestre.querySelectorAll(
+                ".ramo"
+              )
+            );
+
+          const aprobadosSemestre =
+            ramosSemestre.filter(
+              ramo =>
+                ramo.classList.contains(
+                  "aprobado"
+                )
+            ).length;
+
+          let contador =
+            semestre.querySelector(
+              ".semestre-progreso"
+            );
+
+          if (!contador) {
+
+            contador =
+              document.createElement(
+                "div"
+              );
+
+            contador.className =
+              "semestre-progreso";
+
+            semestre
+              .querySelector("h2")
+              .insertAdjacentElement(
+                "afterend",
+                contador
+              );
+          }
+
+          contador.textContent =
+            `${aprobadosSemestre} de ${ramosSemestre.length} ramos aprobados`;
+
+          semestre.classList.toggle(
+            "completado",
+            ramosSemestre.length > 0 &&
+            aprobadosSemestre ===
+              ramosSemestre.length
+          );
+
+        }
+      );
+    }
+
+
+    function actualizarResumen(
+      cantidadAprobados,
+      totalRamos
+    ) {
+
+      const semestresCompletados =
+        semestres.filter(
+          semestre =>
+            semestre.classList.contains(
+              "completado"
+            )
+        ).length;
+
+      const mallaCompleta =
+        totalRamos > 0 &&
+        cantidadAprobados ===
+          totalRamos;
+
+      resumenSemestre.classList.toggle(
+        "malla-completa",
+        mallaCompleta
+      );
+
+      if (mallaCompleta) {
+
+        resumenSemestre.textContent =
+          `Malla completada · ${semestres.length} de ${semestres.length} semestres completados`;
+
+        return;
+      }
+
+      const primerSemestrePendiente =
+        semestres.find(
+          semestre =>
+            !semestre.classList.contains(
+              "completado"
+            )
+        );
+
+      const nombreSemestre =
+        primerSemestrePendiente
+          ? primerSemestrePendiente
+              .querySelector("h2")
+              .textContent
+              .trim()
+          : "Avance";
+
+      resumenSemestre.textContent =
+        `${nombreSemestre} · ${semestresCompletados} de ${semestres.length} semestres completados`;
+    }
+
+
+    function actualizarProgreso() {
+
+      const cantidadAprobados =
+        ramos.filter(
+          ramo =>
+            ramo.classList.contains(
+              "aprobado"
+            )
+        ).length;
+
+      const creditosTotales =
+        ramos.reduce(
+          (total, ramo) =>
+            total +
+            obtenerCreditos(ramo),
+          0
+        );
+
+      const creditosAprobados =
+        ramos
+          .filter(
+            ramo =>
+              ramo.classList.contains(
+                "aprobado"
+              )
+          )
+          .reduce(
+            (total, ramo) =>
+              total +
+              obtenerCreditos(ramo),
+            0
+          );
+
+      const porcentaje =
+        ramos.length === 0
+          ? 0
+          : Math.round(
+              (
+                cantidadAprobados /
+                ramos.length
+              ) * 100
+            );
+
+      ramosAprobadosTexto.textContent =
+        cantidadAprobados;
+
+      ramosTotalesTexto.textContent =
+        ramos.length;
+
+      creditosAprobadosTexto.textContent =
+        creditosAprobados;
+
+      creditosTotalesTexto.textContent =
+        creditosTotales;
+
+      porcentajeTexto.textContent =
+        `${porcentaje}%`;
+
+      barraProgreso.style.width =
+        `${porcentaje}%`;
+
+      barraFondo.setAttribute(
+        "aria-valuenow",
+        porcentaje
+      );
+
+      actualizarProgresoPorSemestre();
+
+      actualizarResumen(
+        cantidadAprobados,
+        ramos.length
+      );
+    }
+
+
+    function sincronizarEstado({
+      guardar = true
+    } = {}) {
+
+      actualizarRamos();
+
+      if (guardar) {
+        guardarProgreso();
+      }
+
+      actualizarProgreso();
+    }
+
+    /* ========================= */
+    /* APROBAR / DESAPROBAR */
+    /* ========================= */
+
+    function alternarRamo(ramo) {
+
+      if (
+        ramo.classList.contains(
+          "aprobado"
+        )
+      ) {
+
+        ramo.classList.remove(
+          "aprobado"
+        );
+
+        sincronizarEstado();
+
+        return;
+      }
+
+      if (
+        ramo.classList.contains(
+          "bloqueado"
+        )
+      ) {
+        return;
+      }
+
+      ramo.classList.add(
+        "aprobado"
+      );
+
+      sincronizarEstado();
+    }
+
+
+    const temporizadoresClick =
+      new WeakMap();
+
+
+    ramos.forEach(ramo => {
+
+      ramo.addEventListener(
+        "click",
+        () => {
+
+          const anterior =
+            temporizadoresClick.get(
+              ramo
+            );
+
+          if (anterior) {
+            clearTimeout(anterior);
+          }
+
+          const temporizador =
+            setTimeout(
+              () => {
+
+                temporizadoresClick.delete(
+                  ramo
+                );
+
+                alternarRamo(ramo);
+
+              },
+              220
+            );
+
+          temporizadoresClick.set(
+            ramo,
+            temporizador
+          );
+
+        }
+      );
+
+
+      ramo.addEventListener(
+        "dblclick",
+        evento => {
+
+          evento.preventDefault();
+
+          const temporizador =
+            temporizadoresClick.get(
+              ramo
+            );
+
+          if (temporizador) {
+
+            clearTimeout(
+              temporizador
+            );
+
+            temporizadoresClick.delete(
+              ramo
+            );
+          }
+
+          mostrarDetalle(ramo);
+
+        }
+      );
+
+    });
+
+    /* ========================= */
+    /* MODAL DE DETALLES */
+    /* ========================= */
+
+    function cerrarModal() {
+
+      modalFondo.hidden = true;
+
+      if (
+        ultimoElementoActivo &&
+        typeof
+          ultimoElementoActivo.focus ===
+          "function"
+      ) {
+
+        ultimoElementoActivo.focus();
+
+      }
+    }
+
+
+    function crearRequisito(codigo) {
+
+      const cumplido =
+        estaAprobado(codigo);
+
+      const item =
+        document.createElement(
+          "div"
+        );
+
+      item.className =
+        `requisito-item ${
+          cumplido
+            ? "cumplido"
+            : "faltante"
+        }`;
+
+      const simbolo =
+        document.createElement(
+          "span"
+        );
+
+      simbolo.className =
+        "requisito-simbolo";
+
+      simbolo.textContent =
+        cumplido
+          ? "✓"
+          : "✗";
+
+      const nombre =
+        document.createElement(
+          "span"
+        );
+
+      nombre.textContent =
+        obtenerNombreRamo(
+          codigo
+        );
+
+      item.append(
+        simbolo,
+        nombre
+      );
+
+      return item;
+    }
+
+
+    function mostrarDetalle(ramo) {
+
+      ultimoElementoActivo =
+        document.activeElement;
+
+      const requisitos =
+        obtenerRequisitos(ramo);
+
+      const faltantes =
+        requisitos.filter(
+          codigo =>
+            !estaAprobado(codigo)
+        );
+
+      let estado =
+        "Disponible";
+
+      let claseEstado =
+        "estado-disponible";
+
+      if (
+        ramo.classList.contains(
+          "aprobado"
+        )
+      ) {
+
+        estado =
+          "Aprobado";
+
+        claseEstado =
+          "estado-aprobado";
+
+      } else if (
+        ramo.classList.contains(
+          "bloqueado"
+        )
+      ) {
+
+        estado =
+          "Bloqueado";
+
+        claseEstado =
+          "estado-bloqueado";
+      }
+
+      detalleCodigo.textContent =
+        ramo.dataset.id;
+
+      detalleNombre.textContent =
+        ramo
+          .querySelector(".nombre")
+          .textContent
+          .trim();
+
+      detalleCreditos.textContent =
+        ramo
+          .querySelector(".creditos")
+          .textContent
+          .trim();
+
+      detalleEstado.textContent =
+        estado;
+
+      detalleEstado.className =
+        claseEstado;
+
+      detalleRequisitos.replaceChildren();
+
+      if (
+        requisitos.length === 0
+      ) {
+
+        const sinRequisitos =
+          document.createElement(
+            "p"
+          );
+
+        sinRequisitos.className =
+          "sin-requisitos";
+
+        sinRequisitos.textContent =
+          "Este ramo no tiene prerrequisitos.";
+
+        detalleRequisitos.append(
+          sinRequisitos
+        );
+
+      } else {
+
+        requisitos.forEach(
+          codigo => {
+
+            detalleRequisitos.append(
+              crearRequisito(
+                codigo
+              )
+            );
+
+          }
+        );
+      }
+
+      if (
+        faltantes.length > 0
+      ) {
+
+        detalleFaltantes.textContent =
+          "Falta aprobar: " +
+          faltantes
+            .map(
+              obtenerNombreRamo
+            )
+            .join(" · ");
+
+      } else if (
+        requisitos.length > 0
+      ) {
+
+        detalleFaltantes.textContent =
+          "Todos los prerrequisitos están cumplidos.";
+
+      } else {
+
+        detalleFaltantes.textContent =
+          "";
+      }
+
+      modalFondo.hidden =
+        false;
+
+      requestAnimationFrame(
+        () => {
+
+          cerrarDetalle.focus();
+
+        }
+      );
+    }
+
+
+    cerrarDetalle.addEventListener(
+      "click",
+      cerrarModal
+    );
+
+
+    modalFondo.addEventListener(
+      "click",
+      evento => {
+
+        if (
+          evento.target ===
+          modalFondo
+        ) {
+
+          cerrarModal();
+
+        }
+
+      }
+    );
+
+
+    document.addEventListener(
+      "keydown",
+      evento => {
+
+        if (
+          evento.key ===
+            "Escape" &&
+          !modalFondo.hidden
+        ) {
+
+          cerrarModal();
+
+        }
+
+      }
+    );
+
+    /* ========================= */
+    /* REINICIAR */
+    /* ========================= */
+
+    reiniciarProgreso.addEventListener(
+      "click",
+      () => {
+
+        const confirmar =
+          confirm(
+            "¿Seguro que quieres reiniciar todo tu progreso?"
+          );
+
+        if (!confirmar) {
+          return;
+        }
+
+        ramos.forEach(
+          ramo => {
+
+            ramo.classList.remove(
+              "aprobado"
+            );
+
+          }
+        );
+
+        localStorage.removeItem(
+          CLAVE_GUARDADO
+        );
+
+        actualizarRamos();
+
+        actualizarProgreso();
+
+        cerrarModal();
+
+      }
+    );
+
+    /* ========================= */
+    /* INICIO */
+    /* ========================= */
+
+    cargarProgreso();
+
+    actualizarRamos();
+
+    /* Si el guardado tenía un ramo aprobado
+       sin sus prerrequisitos, se limpia y se
+       guarda el estado válido. */
+
+    guardarProgreso();
+
+    actualizarProgreso();
+
+  </script>
+</body>
+</html>
