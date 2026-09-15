@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const VERSION="3.0.1", STORAGE_KEY="mallaPUCV_v3", LEGACY_KEY="mallaPUCV_aprobados", TUTORIAL_KEY="mallaPUCV_v3_tutorial";
+  const VERSION="3.0.2", STORAGE_KEY="mallaPUCV_v3", LEGACY_KEY="mallaPUCV_aprobados", TUTORIAL_KEY="mallaPUCV_v3_tutorial";
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const ramos=$$(".ramo"), semestres=$$(".semestre"), cursosPorId=new Map(ramos.map(r=>[r.dataset.id,r]));
   const reverseDeps=new Map(); ramos.forEach(r=>obtenerRequisitos(r).forEach(p=>{if(!reverseDeps.has(p))reverseDeps.set(p,[]);reverseDeps.get(p).push(r.dataset.id)}));
@@ -52,29 +52,44 @@
   function cascadeInvalidos(){let cambio=true;while(cambio){cambio=false;ramos.forEach(r=>{const d=cursoData(r.dataset.id);if(bloqueado(r)&&["approved","inprogress"].includes(d.state)){d.state="none";cambio=true}})}}
   function togglePlan(r){const d=cursoData(r.dataset.id);if(d.state==="approved"){mostrarToast("Un ramo aprobado no necesita planificación");return}d.planned=!d.planned;sincronizarUI();mostrarToast(d.planned?"Agregado al próximo semestre":"Quitado de la planificación")}
 
-  // Interacción: 1 clic cambia aprobado; doble clic abre detalles sin cambiar el estado.
-  // El pequeño retraso permite distinguir un clic simple de un doble clic.
-  const clickTimers=new WeakMap();
+  // Interacción robusta: un toque/clic aprueba; dos clics rápidos abren detalles.
+  // Usamos pointerup en vez de depender solo del evento dblclick del navegador.
+  const interacciones=new WeakMap();
   ramos.forEach(r=>{
     const infoBtn=$('.ramo-info-btn',r);
 
-    r.addEventListener('click',e=>{
+    r.addEventListener('pointerup',e=>{
       if(e.target.closest?.('.ramo-info-btn'))return;
-      const anterior=clickTimers.get(r);
-      if(anterior)clearTimeout(anterior);
+      if(e.pointerType==='mouse' && e.button!==0)return;
+
+      const ahora=performance.now();
+      const anterior=interacciones.get(r)||{ultimo:0,timer:null};
+      const esDoble=ahora-anterior.ultimo<=430;
+
+      if(esDoble){
+        if(anterior.timer)clearTimeout(anterior.timer);
+        interacciones.set(r,{ultimo:0,timer:null});
+        e.preventDefault();
+        abrirRamo(r);
+        return;
+      }
+
       const timer=setTimeout(()=>{
-        clickTimers.delete(r);
         const d=cursoData(r.dataset.id);
         cambiarEstado(r,d.state==="approved"?"none":"approved");
-      },240);
-      clickTimers.set(r,timer);
+        interacciones.set(r,{ultimo:0,timer:null});
+      },440);
+
+      interacciones.set(r,{ultimo:ahora,timer});
     });
 
+    // Fallback para navegadores de escritorio que sí emiten dblclick.
     r.addEventListener('dblclick',e=>{
       if(e.target.closest?.('.ramo-info-btn'))return;
       e.preventDefault();
-      const timer=clickTimers.get(r);
-      if(timer){clearTimeout(timer);clickTimers.delete(r)}
+      const anterior=interacciones.get(r);
+      if(anterior?.timer)clearTimeout(anterior.timer);
+      interacciones.set(r,{ultimo:0,timer:null});
       abrirRamo(r);
     });
 
@@ -84,7 +99,12 @@
 
     if(infoBtn){
       infoBtn.addEventListener('pointerdown',e=>e.stopPropagation());
-      infoBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();abrirRamo(r)});
+      infoBtn.addEventListener('pointerup',e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        abrirRamo(r);
+      });
+      infoBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()});
       infoBtn.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation()});
     }
   });
@@ -110,7 +130,17 @@
   // General modal helpers
   function abrirGeneral(titulo,html){el.generalTitulo.textContent=titulo;el.generalContenido.innerHTML=html;el.modalGeneral.hidden=false;engancharGeneral()}
   function cerrarModal(m){m.hidden=true;if(m===el.modalRamo)cursoActivo=null}
-  $$('[data-close-modal]').forEach(b=>b.addEventListener('click',()=>cerrarModal(b.closest('.modal-fondo'))));[el.modalRamo,el.modalGeneral].forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cerrarModal(m)}));document.addEventListener('keydown',e=>{if(e.key==='Escape'){[el.modalRamo,el.modalGeneral,el.modalTutorial].forEach(m=>{if(!m.hidden)cerrarModal(m)})}})
+  // Cierre delegado: funciona aunque el modal se vuelva a renderizar o cambie su contenido.
+  document.addEventListener('click',e=>{
+    const boton=e.target.closest?.('[data-close-modal]');
+    if(!boton)return;
+    e.preventDefault();
+    e.stopPropagation();
+    const modal=boton.closest('.modal-fondo');
+    if(modal)cerrarModal(modal);
+  });
+  [el.modalRamo,el.modalGeneral].forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cerrarModal(m)}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){[el.modalRamo,el.modalGeneral,el.modalTutorial].forEach(m=>{if(!m.hidden)cerrarModal(m)})}})
 
   $('#puedoTomarBtn').addEventListener('click',()=>{const list=ramos.filter(r=>estadoVisual(r)==='disponible');abrirGeneral('¿Qué puedo tomar ahora?',list.length?`<div class="general-list">${list.map(r=>`<div class="general-item"><strong>${r.dataset.id} · ${escapeHtml(nombre(r.dataset.id))}</strong>${r.dataset.semestre}° semestre · ${creditos(r)} créditos · ${r.dataset.area}</div>`).join('')}</div>`:'<p>No hay ramos disponibles pendientes en este momento.</p>')});
   $('#verPlanBtn').addEventListener('click',()=>{const list=ramos.filter(r=>cursoData(r.dataset.id).planned&&cursoData(r.dataset.id).state!=='approved');const cr=list.reduce((a,r)=>a+creditos(r),0);abrirGeneral('Planificación del próximo semestre',`<p>${list.length} ramos · ${cr} créditos planificados</p>${list.length?`<div class="general-list">${list.map(r=>`<div class="general-item"><strong>${r.dataset.id} · ${escapeHtml(nombre(r.dataset.id))}</strong>${creditos(r)} créditos · ${bloqueado(r)?'Aún bloqueado':'Disponible para cursar'}</div>`).join('')}</div>`:'<p>Aún no has planificado ramos.</p>'}`)});
@@ -139,7 +169,7 @@
 
   // Theme/view/tutorial/changelog
   function aplicarPreferencias(){document.documentElement.dataset.theme=data.preferences.theme;document.body.classList.toggle('vista-compacta',data.preferences.view==='compact');$('#temaBtn').title=data.preferences.theme==='dark'?'Usar tema claro':'Usar tema oscuro';$('#vistaBtn').title=data.preferences.view==='compact'?'Usar vista normal':'Usar vista compacta'}
-  $('#temaBtn').addEventListener('click',()=>{data.preferences.theme=data.preferences.theme==='dark'?'light':'dark';aplicarPreferencias();guardarDatos()});$('#vistaBtn').addEventListener('click',()=>{data.preferences.view=data.preferences.view==='compact'?'normal':'compact';aplicarPreferencias();guardarDatos()});$('#ayudaBtn').addEventListener('click',()=>el.modalTutorial.hidden=false);$('#tutorialCerrarBtn').addEventListener('click',()=>{localStorage.setItem(TUTORIAL_KEY,'1');cerrarModal(el.modalTutorial)});$('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v3.0.0',`<div class="general-list"><div class="general-item"><strong>Estados nuevos</strong>Cursando y planificación.</div><div class="general-item"><strong>Planner</strong>Carga tentativa y créditos.</div><div class="general-item"><strong>Notas</strong>Nota final, promedio y comentarios personales.</div><div class="general-item"><strong>Datos</strong>Backup, importar, compartir y tarjeta.</div><div class="general-item"><strong>Impresión</strong>Malla completa o resumen con colores.</div><div class="general-item"><strong>PWA</strong>Instalable y preparada para funcionar offline.</div></div>`));
+  $('#temaBtn').addEventListener('click',()=>{data.preferences.theme=data.preferences.theme==='dark'?'light':'dark';aplicarPreferencias();guardarDatos()});$('#vistaBtn').addEventListener('click',()=>{data.preferences.view=data.preferences.view==='compact'?'normal':'compact';aplicarPreferencias();guardarDatos()});$('#ayudaBtn').addEventListener('click',()=>el.modalTutorial.hidden=false);$('#tutorialCerrarBtn').addEventListener('click',()=>{localStorage.setItem(TUTORIAL_KEY,'1');cerrarModal(el.modalTutorial)});$('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v3.0.2',`<div class="general-list"><div class="general-item"><strong>Estados nuevos</strong>Cursando y planificación.</div><div class="general-item"><strong>Planner</strong>Carga tentativa y créditos.</div><div class="general-item"><strong>Notas</strong>Nota final, promedio y comentarios personales.</div><div class="general-item"><strong>Datos</strong>Backup, importar, compartir y tarjeta.</div><div class="general-item"><strong>Impresión</strong>Malla completa o resumen con colores.</div><div class="general-item"><strong>PWA</strong>Instalable y preparada para funcionar offline.</div></div>`));
 
   // Confirmation/toasts/reset
   function confirmar(texto){el.confirmTexto.textContent=texto;el.modalConfirm.hidden=false;return new Promise(resolve=>{confirmResolver=resolve})}function cerrarConfirm(v){el.modalConfirm.hidden=true;if(confirmResolver){confirmResolver(v);confirmResolver=null}}el.confirmAceptar.addEventListener('click',()=>cerrarConfirm(true));el.confirmCancelar.addEventListener('click',()=>cerrarConfirm(false));el.modalConfirm.addEventListener('click',e=>{if(e.target===el.modalConfirm)cerrarConfirm(false)});

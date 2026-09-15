@@ -1,4 +1,4 @@
-# Malla Pedagogía en Inglés PUCV — v3.0.0
+# Malla Pedagogía en Inglés PUCV — v3.0.2
 
 Sitio estático para GitHub Pages.
 
