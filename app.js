@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const VERSION="3.0.0", STORAGE_KEY="mallaPUCV_v3", LEGACY_KEY="mallaPUCV_aprobados", TUTORIAL_KEY="mallaPUCV_v3_tutorial";
+  const VERSION="3.0.1", STORAGE_KEY="mallaPUCV_v3", LEGACY_KEY="mallaPUCV_aprobados", TUTORIAL_KEY="mallaPUCV_v3_tutorial";
   const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   const ramos=$$(".ramo"), semestres=$$(".semestre"), cursosPorId=new Map(ramos.map(r=>[r.dataset.id,r]));
   const reverseDeps=new Map(); ramos.forEach(r=>obtenerRequisitos(r).forEach(p=>{if(!reverseDeps.has(p))reverseDeps.set(p,[]);reverseDeps.get(p).push(r.dataset.id)}));
@@ -52,11 +52,41 @@
   function cascadeInvalidos(){let cambio=true;while(cambio){cambio=false;ramos.forEach(r=>{const d=cursoData(r.dataset.id);if(bloqueado(r)&&["approved","inprogress"].includes(d.state)){d.state="none";cambio=true}})}}
   function togglePlan(r){const d=cursoData(r.dataset.id);if(d.state==="approved"){mostrarToast("Un ramo aprobado no necesita planificación");return}d.planned=!d.planned;sincronizarUI();mostrarToast(d.planned?"Agregado al próximo semestre":"Quitado de la planificación")}
 
-  // Quick interaction: click toggles approved, info button/modal handles everything else
+  // Interacción: 1 clic cambia aprobado; doble clic abre detalles sin cambiar el estado.
+  // El pequeño retraso permite distinguir un clic simple de un doble clic.
+  const clickTimers=new WeakMap();
   ramos.forEach(r=>{
-    r.addEventListener('click',e=>{if(e.target.closest('.ramo-info-btn'))return;const d=cursoData(r.dataset.id);cambiarEstado(r,d.state==="approved"?"none":"approved")});
-    r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirRamo(r)}});
-    $('.ramo-info-btn',r).addEventListener('click',e=>{e.stopPropagation();abrirRamo(r)});
+    const infoBtn=$('.ramo-info-btn',r);
+
+    r.addEventListener('click',e=>{
+      if(e.target.closest?.('.ramo-info-btn'))return;
+      const anterior=clickTimers.get(r);
+      if(anterior)clearTimeout(anterior);
+      const timer=setTimeout(()=>{
+        clickTimers.delete(r);
+        const d=cursoData(r.dataset.id);
+        cambiarEstado(r,d.state==="approved"?"none":"approved");
+      },240);
+      clickTimers.set(r,timer);
+    });
+
+    r.addEventListener('dblclick',e=>{
+      if(e.target.closest?.('.ramo-info-btn'))return;
+      e.preventDefault();
+      const timer=clickTimers.get(r);
+      if(timer){clearTimeout(timer);clickTimers.delete(r)}
+      abrirRamo(r);
+    });
+
+    r.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();abrirRamo(r)}
+    });
+
+    if(infoBtn){
+      infoBtn.addEventListener('pointerdown',e=>e.stopPropagation());
+      infoBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();abrirRamo(r)});
+      infoBtn.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation()});
+    }
   });
 
   function abrirRamo(r){cursoActivo=r;renderModalRamo(r);el.modalRamo.hidden=false;setTimeout(()=>$('#modalRamo [data-close-modal]')?.focus(),0)}
