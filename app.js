@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const VERSION = "3.1.0";
+  const VERSION = "4.0.0";
   const STORAGE_KEY = "mallaPUCV_v3";
   const LEGACY_KEY = "mallaPUCV_aprobados";
-  const TUTORIAL_KEY = "mallaPUCV_v3_tutorial";
+  const TUTORIAL_KEY = "mallaPUCV_v4_tutorial";
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -245,6 +245,7 @@
   function guardarDatos({toast=false}={}){
     data.version = VERSION;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try{ window.dispatchEvent(new CustomEvent("malla:datachange", {detail:{version:VERSION}})); }catch{}
     if(toast) mostrarToast("Progreso guardado");
   }
 
@@ -646,7 +647,7 @@
   $('#vistaBtn').addEventListener('click',()=>{data.preferences.view=data.preferences.view==='compact'?'normal':'compact';aplicarPreferencias();guardarDatos();});
   $('#ayudaBtn').addEventListener('click',()=>el.modalTutorial.hidden=false);
   $('#tutorialCerrarBtn').addEventListener('click',()=>{localStorage.setItem(TUTORIAL_KEY,'1');cerrarModal(el.modalTutorial);});
-  $('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v3.1.0',`<div class="general-list"><div class="general-item"><strong>Malla personal</strong>Agrega FOFUs, optativos u otros ramos con sigla, créditos, semestre real, estado, nota y comentario.</div><div class="general-item"><strong>Minor</strong>Selecciona uno de los Minors oficiales PUCV y agrega FOFUs desde su catálogo.</div><div class="general-item"><strong>Referencia oficial</strong>FOFU 1/2/3 se sugieren en 5°/6°/9° y Optativos 1/2/3/4 en 2°/5°/7°/9°, pero puedes ubicarlos donde realmente los cursaste.</div><div class="general-item"><strong>Backup e impresión</strong>Los ramos personales y el Minor ahora viajan en el backup y aparecen en impresión.</div><div class="general-item"><strong>Interacción</strong>Se conserva doble clic, botón i y cierre de modales corregidos de v3.0.2.</div></div>`));
+  $('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v4.0.0',`<div class="general-list"><div class="general-item"><strong>Mint Garden v4</strong>Nueva navegación por secciones, dashboard, paleta por categorías, panel lateral y cuentas con sincronización opcional.</div><div class="general-item"><strong>Malla personal</strong>Agrega FOFUs, optativos u otros ramos con sigla, créditos, semestre real, estado, nota y comentario.</div><div class="general-item"><strong>Minor</strong>Selecciona uno de los Minors oficiales PUCV y agrega FOFUs desde su catálogo.</div><div class="general-item"><strong>Referencia oficial</strong>FOFU 1/2/3 se sugieren en 5°/6°/9° y Optativos 1/2/3/4 en 2°/5°/7°/9°, pero puedes ubicarlos donde realmente los cursaste.</div><div class="general-item"><strong>Backup e impresión</strong>Los ramos personales y el Minor ahora viajan en el backup y aparecen en impresión.</div><div class="general-item"><strong>Interacción</strong>Se conserva doble clic, botón i y cierre de modales corregidos de v3.0.2.</div></div>`));
 
   // Confirmaciones/toast/reset
   function confirmar(texto){el.confirmTexto.textContent=texto;el.modalConfirm.hidden=false;return new Promise(resolve=>{confirmResolver=resolve;});}
@@ -662,10 +663,30 @@
   function iniciarAnalytics(){const cfg=window.MALLA_CONFIG||{};if(!cfg.analyticsEnabled||!cfg.plausibleDomain)return;const s=document.createElement('script');s.defer=true;s.dataset.domain=cfg.plausibleDomain;s.src='https://plausible.io/js/script.js';document.head.append(s);}
   function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
 
+  // API pública mínima para la capa v4 (UI + nube).
+  window.MALLA_V4 = {
+    getData: () => JSON.parse(JSON.stringify(data)),
+    defaultData: () => defaultData(),
+    importData: (incoming) => {
+      const parsed = incoming && typeof incoming === "object" ? incoming : defaultData();
+      data = {...defaultData(), ...parsed, preferences:{...defaultData().preferences, ...(parsed.preferences||{})}, courses:parsed.courses||{}, customCourses:Array.isArray(parsed.customCourses)?parsed.customCourses.map(normalizarCustom):[]};
+      Object.keys(data.courses||{}).forEach(k => data.courses[k] = normalizarCurso(data.courses[k]));
+      renderCustomCourses();
+      aplicarPreferencias();
+      sincronizarUI();
+    },
+    setMinor: (id) => { data.preferences.minor = id || ""; guardarDatos(); actualizarMinorDashboard(); },
+    openAddCourse: (prefill={}) => abrirFormularioRamo(null,prefill),
+    minors: MINORS,
+    toast: mostrarToast,
+    syncUI: sincronizarUI,
+    version: VERSION
+  };
+
   // Inicio
   renderCustomCourses();
   aplicarPreferencias();
   sincronizarUI();
   iniciarAnalytics();
-  if(!localStorage.getItem(TUTORIAL_KEY))setTimeout(()=>el.modalTutorial.hidden=false,350);
+  // En v4 el tutorial se abre desde Ajustes para no interrumpir el login/landing.
 })();

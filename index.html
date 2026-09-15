@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#fcf7d9">
-  <meta name="description" content="Malla interactiva no oficial de Pedagogía en Inglés PUCV: progreso, prerrequisitos, planificación, notas y créditos.">
+  <meta name="theme-color" content="#F7F3EE">
+  <meta name="description" content="Mint Garden v4: malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, Minors y sincronización opcional.">
   <meta property="og:title" content="Malla Pedagogía en Inglés PUCV">
   <meta property="og:description" content="Malla interactiva con progreso, prerrequisitos, planificación y créditos.">
   <meta property="og:type" content="website">
@@ -19,7 +19,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.1.0">
+  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <link rel="stylesheet" href="v4.css?v=4.0.0">
 </head>
 <body>
   <header class="site-header no-print">
@@ -607,7 +608,7 @@
   <footer>
     <div>
       <strong>Malla Pedagogía en Inglés PUCV</strong>
-      <span>Herramienta no oficial · v3.1.0 · septiembre 2026</span>
+      <span>Herramienta no oficial · v4.0.0 Mint Garden · septiembre 2026</span>
     </div>
     <div class="footer-links no-print">
       <a href="https://github.com/unstablehoon/malla-pedagogia-ingles-pucv/issues/new" target="_blank" rel="noopener">Reportar error</a>
@@ -641,7 +642,7 @@
       <div class="detail-section" id="detalleMinorWrap" hidden><h3>Minor</h3><div id="detalleMinor" class="chips"></div></div>
       <div class="detail-section"><h3>Desbloquea</h3><div id="detalleDesbloquea" class="chips"></div></div>
       <div class="custom-course-actions" id="customCourseActions" hidden><button class="btn secundario" id="editarCustomBtn" type="button">Editar ramo</button><button class="btn peligro-suave" id="eliminarCustomBtn" type="button">Eliminar ramo</button></div>
-      <p class="autosave-note">Los cambios se guardan automáticamente en este dispositivo.</p>
+      <p class="autosave-note">Los cambios se guardan automáticamente. Con una cuenta conectada también se sincronizan en la nube.</p>
     </section>
   </div>
 
@@ -677,7 +678,7 @@
         <div><strong>FOFUs y optativos</strong><span>Agrega manualmente tus cursos y ubícalos en el semestre real en que los tomaste.</span></div>
         <div><strong>Minor</strong><span>Selecciona tu Minor, revisa su catálogo de FOFUs y lleva el progreso de sus asignaturas.</span></div>
       </div>
-      <p class="tutorial-note">Tu información se guarda localmente en tu navegador; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
+      <p class="tutorial-note">En modo invitada, tu información se guarda localmente. Con una cuenta, tu progreso se sincroniza de forma privada mediante Supabase; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
       <button class="btn ancho" id="tutorialCerrarBtn" type="button">Entendido</button>
     </section>
   </div>
@@ -685,7 +686,9 @@
   <div class="toast-container no-print" id="toastContainer" aria-live="polite"></div>
   <input id="importInput" type="file" accept="application/json" hidden>
 
-  <script src="config.js?v=3.1.0"></script>
-  <script src="app.js?v=3.1.0" defer></script>
+  <script src="config.js?v=4.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js?v=4.0.0" defer></script>
+  <script src="v4.js?v=4.0.0" defer></script>
 </body>
 </html>

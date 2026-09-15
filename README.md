@@ -1,29 +1,34 @@
-# Malla Pedagogía en Inglés PUCV — v3.1.0
+# Malla Pedagogía en Inglés PUCV — v4.0.0 Mint Garden
 
-Sitio estático para GitHub Pages.
+Rediseño completo de la malla interactiva no oficial de Pedagogía en Inglés PUCV.
 
-## Novedades v3.1
-- Ramos personales: FOFUs, optativos y otros.
-- Sigla, nombre, créditos, semestre real, estado, nota y comentario.
-- Minor seleccionable con catálogo oficial de FOFUs PUCV.
-- Progreso del Minor y requisitos de Antropología / Ética.
-- Semestres referenciales de la malla: FOFU 1/2/3 → 5°/6°/9°; Optativos 1/2/3/4 → 2°/5°/7°/9°.
-- Los cursos personales se incluyen en backup, filtros, búsqueda, planificación e impresión.
-- Corrección visual del botón de cierre y conservación de la interacción v3.0.2.
+## v4.0
+- Nueva interfaz **Mint Garden** inspirada en blush, sage, mint, vanilla y cacao.
+- Navegación por secciones: Inicio, Mi malla, Planificación, Minor & FOFUs, Progreso, Respaldo y Ajustes.
+- Landing/login visual con Google, email + contraseña y modo invitada.
+- Sincronización opcional entre dispositivos mediante Supabase.
+- `localStorage` se mantiene como respaldo local y modo invitada.
+- Panel lateral de detalle de ramo en escritorio.
+- Colores por categoría de ramo; los estados usan bordes, badges y tratamientos sin borrar la categoría.
+- Dashboard con KPIs y mini barra de progreso.
+- Vista dedicada para planificación, Minors/FOFUs y estadísticas por categoría.
+- FOFUs, optativos y otros ramos siguen siendo editables y se ubican en el semestre real escogido.
+- Semestres de FOFUs/optativos siguen siendo solo referencias, no restricciones.
+- Impresión y backups continúan disponibles.
 
-## Publicar
-Sube **todos** estos archivos y la carpeta `assets/` a la raíz del repositorio. GitHub Pages debe apuntar a `main` / `(root)`.
+## Supabase
+La app usa una **publishable key**, que está diseñada para ejecutarse en el frontend. La seguridad de los datos depende de las políticas RLS configuradas en Supabase.
 
-## Importante
-La distribución de FOFUs y optativos por semestre es referencial; cada estudiante puede ubicarlos en el semestre en que realmente los cursó.
+Nunca subas a este repositorio una `service_role`, `sb_secret_...`, contraseña de base de datos u otra clave secreta.
 
-Los catálogos de Minor se basan en minors.pucv.cl y las marcas de disponibilidad corresponden a la indicación “no programada para 2S-2026” publicada allí. La oferta puede cambiar.
+## Publicar en GitHub Pages
+Sube todos los archivos y la carpeta `assets/` a la raíz del repositorio y reemplaza las versiones anteriores.
 
-## Analytics opcional
-El proyecto viene preparado para Plausible pero desactivado. Para activarlo:
-1. Crea/configura el sitio en Plausible.
-2. Edita `config.js`.
-3. Cambia `analyticsEnabled` a `true`.
-4. Pon tu dominio de GitHub Pages en `plausibleDomain`.
+Archivos nuevos en v4:
+- `v4.css`
+- `v4.js`
 
-No se envían notas, progreso ni comentarios del usuario: esos datos se guardan en `localStorage`.
+GitHub Pages debe seguir apuntando a `main` / `(root)`.
+
+## Después de publicar
+Haz una recarga forzada (`Cmd + Shift + R` en macOS / `Ctrl + Shift + R` en Windows) porque la versión anterior podía quedar guardada por el service worker.

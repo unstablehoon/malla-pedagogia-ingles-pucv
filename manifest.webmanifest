@@ -1,24 +1,14 @@
 {
-  "name": "Malla Pedagogía en Inglés PUCV",
+  "name": "Malla Pedagogía en Inglés PUCV · Mint Garden",
   "short_name": "Malla PUCV",
-  "description": "Malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, FOFUs, optativos y Minors.",
+  "description": "Malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, FOFUs, optativos, Minors y sincronización opcional.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#fcf7d9",
-  "theme_color": "#fcf7d9",
+  "background_color": "#F7F3EE",
+  "theme_color": "#684F48",
   "icons": [
-    {
-      "src": "assets/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "assets/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src":"assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"assets/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
   ]
 }
