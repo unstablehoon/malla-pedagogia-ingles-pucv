@@ -1,7 +1,7 @@
 {
   "name": "Malla Pedagogía en Inglés PUCV",
   "short_name": "Malla PUCV",
-  "description": "Malla interactiva no oficial de Pedagogía en Inglés PUCV.",
+  "description": "Malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, FOFUs, optativos y Minors.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

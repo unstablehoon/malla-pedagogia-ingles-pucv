@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.0.2">
+  <link rel="stylesheet" href="styles.css?v=3.1.0">
 </head>
 <body>
   <header class="site-header no-print">
@@ -52,6 +52,8 @@
         <div class="stat"><span class="stat-num" id="cursandoCantidad">0</span><span class="stat-label"><span id="cursandoCreditos">0</span> cr. cursando</span></div>
         <div class="stat"><span class="stat-num" id="planCantidad">0</span><span class="stat-label"><span id="planCreditos">0</span> cr. planificados</span></div>
         <div class="stat"><span class="stat-num" id="promedioGeneral">—</span><span class="stat-label">promedio registrado</span></div>
+        <div class="stat"><span class="stat-num" id="extrasCantidad">0</span><span class="stat-label"><span id="extrasCreditos">0</span> cr. complementarios</span></div>
+        <div class="stat"><span class="stat-num" id="minorProgreso">—</span><span class="stat-label" id="minorLabel">Minor</span></div>
       </div>
 
       <div class="barra-fondo" id="barraFondo" role="progressbar" aria-label="Progreso de la malla" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
@@ -86,10 +88,12 @@
       </select>
       <select id="filtroArea" aria-label="Filtrar por área">
         <option value="todas">Todas las áreas</option>
-        <option value="Didáctica">Didáctica</option><option value="Formación Fundamental">Formación Fundamental</option><option value="Formación Pedagógica">Formación Pedagógica</option><option value="Inglés">Inglés</option><option value="Lengua y Lingüística">Lengua y Lingüística</option><option value="Literatura y Cultura">Literatura y Cultura</option><option value="Práctica">Práctica</option>
+        <option value="Didáctica">Didáctica</option><option value="Formación Fundamental">Formación Fundamental</option><option value="Formación Pedagógica">Formación Pedagógica</option><option value="Inglés">Inglés</option><option value="Lengua y Lingüística">Lengua y Lingüística</option><option value="Literatura y Cultura">Literatura y Cultura</option><option value="Práctica">Práctica</option><option value="FOFU">FOFU</option><option value="Optativo">Optativo</option><option value="Otro">Otro</option>
       </select>
       <button class="btn" id="puedoTomarBtn" type="button">¿Qué puedo tomar?</button>
       <button class="btn" id="estadisticasBtn" type="button">Estadísticas</button>
+      <button class="btn" id="minorBtn" type="button">Minor y FOFUs</button>
+      <button class="btn" id="agregarRamoBtn" type="button">+ Agregar ramo</button>
     </section>
 
     <nav class="semester-nav no-print" aria-label="Ir a semestre">
@@ -603,7 +607,7 @@
   <footer>
     <div>
       <strong>Malla Pedagogía en Inglés PUCV</strong>
-      <span>Herramienta no oficial · v3.0.2 · septiembre 2026</span>
+      <span>Herramienta no oficial · v3.1.0 · septiembre 2026</span>
     </div>
     <div class="footer-links no-print">
       <a href="https://github.com/unstablehoon/malla-pedagogia-ingles-pucv/issues/new" target="_blank" rel="noopener">Reportar error</a>
@@ -615,10 +619,10 @@
   <!-- Modal de ramo -->
   <div class="modal-fondo" id="modalRamo" hidden>
     <section class="modal-card modal-ramos" role="dialog" aria-modal="true" aria-labelledby="detalleNombre">
-      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar">×</button>
+      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>
       <div class="detalle-codigo" id="detalleCodigo"></div>
       <h2 id="detalleNombre"></h2>
-      <div class="modal-info"><span id="detalleCreditos"></span><span id="detalleArea"></span><span id="detalleEstado"></span></div>
+      <div class="modal-info"><span id="detalleCreditos"></span><span id="detalleArea"></span><span id="detalleTipo" hidden></span><span id="detalleEstado"></span></div>
 
       <div class="estado-selector" id="estadoSelector">
         <button type="button" data-set-state="none">Disponible</button>
@@ -634,7 +638,9 @@
 
       <div class="detail-section"><h3>Prerrequisitos directos</h3><div id="detalleRequisitos" class="lista-requisitos"></div><p id="detalleFaltantes" class="detalle-faltantes"></p></div>
       <div class="detail-section"><h3>Ruta previa</h3><div id="detalleRutas" class="rutas-lista"></div></div>
+      <div class="detail-section" id="detalleMinorWrap" hidden><h3>Minor</h3><div id="detalleMinor" class="chips"></div></div>
       <div class="detail-section"><h3>Desbloquea</h3><div id="detalleDesbloquea" class="chips"></div></div>
+      <div class="custom-course-actions" id="customCourseActions" hidden><button class="btn secundario" id="editarCustomBtn" type="button">Editar ramo</button><button class="btn peligro-suave" id="eliminarCustomBtn" type="button">Eliminar ramo</button></div>
       <p class="autosave-note">Los cambios se guardan automáticamente en este dispositivo.</p>
     </section>
   </div>
@@ -642,7 +648,7 @@
   <!-- Modal genérico -->
   <div class="modal-fondo" id="modalGeneral" hidden>
     <section class="modal-card modal-general" role="dialog" aria-modal="true" aria-labelledby="modalGeneralTitulo">
-      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar">×</button>
+      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>
       <h2 id="modalGeneralTitulo"></h2>
       <div id="modalGeneralContenido"></div>
     </section>
@@ -668,8 +674,10 @@
         <div><strong>Planificar</strong><span>Arma tu próximo semestre y calcula créditos.</span></div>
         <div><strong>Backup</strong><span>Exporta tus datos si cambias de navegador o computador.</span></div>
         <div><strong>Imprimir</strong><span>Genera una malla rosita con tus estados.</span></div>
+        <div><strong>FOFUs y optativos</strong><span>Agrega manualmente tus cursos y ubícalos en el semestre real en que los tomaste.</span></div>
+        <div><strong>Minor</strong><span>Selecciona tu Minor, revisa su catálogo de FOFUs y lleva el progreso de sus asignaturas.</span></div>
       </div>
-      <p class="tutorial-note">Tu información se guarda localmente en tu navegador; no se envía a la universidad.</p>
+      <p class="tutorial-note">Tu información se guarda localmente en tu navegador; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
       <button class="btn ancho" id="tutorialCerrarBtn" type="button">Entendido</button>
     </section>
   </div>
@@ -677,7 +685,7 @@
   <div class="toast-container no-print" id="toastContainer" aria-live="polite"></div>
   <input id="importInput" type="file" accept="application/json" hidden>
 
-  <script src="config.js?v=3.0.2"></script>
-  <script src="app.js?v=3.0.2" defer></script>
+  <script src="config.js?v=3.1.0"></script>
+  <script src="app.js?v=3.1.0" defer></script>
 </body>
 </html>
