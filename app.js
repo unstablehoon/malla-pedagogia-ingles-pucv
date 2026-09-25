@@ -1,10 +1,10 @@
 (() => {
   "use strict";
 
-  const VERSION = "4.0.0";
+  const VERSION = "3.2.0";
   const STORAGE_KEY = "mallaPUCV_v3";
   const LEGACY_KEY = "mallaPUCV_aprobados";
-  const TUTORIAL_KEY = "mallaPUCV_v4_tutorial";
+  const TUTORIAL_KEY = "mallaPUCV_v32_tutorial";
 
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
@@ -209,7 +209,7 @@
   }
 
   function normalizarCurso(c={}){
-    return {state:["approved","inprogress","none"].includes(c.state)?c.state:"none", planned:Boolean(c.planned), grade:c.grade??"", note:c.note??""};
+    return {state:["approved","inprogress","none"].includes(c.state)?c.state:"none", planned:Boolean(c.planned), grade:c.grade??"", note:c.note??"", assessments:Array.isArray(c.assessments)?c.assessments.map(a=>({id:a.id||`ev-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,name:String(a.name||""),weight:Number(a.weight||0),grade:a.grade===""||a.grade==null?"":Number(a.grade)})):[], attendance:{total:Number(c.attendance?.total||0),present:Number(c.attendance?.present||0),minimum:c.attendance?.minimum===""||c.attendance?.minimum==null?"":Number(c.attendance.minimum)}, history:{year:c.history?.year||"",period:c.history?.period||""}};
   }
 
   function normalizarCustom(c={}){
@@ -476,6 +476,13 @@
     $("#detalleEstado").textContent = etiquetaEstado(est);
     $("#detalleNota").value = d.grade;
     $("#detalleComentario").value = d.note;
+    renderEvaluaciones(d);
+    $("#asistenciaTotal").value=d.attendance?.total||"";
+    $("#asistenciaPresentes").value=d.attendance?.present||"";
+    $("#asistenciaMinima").value=d.attendance?.minimum??"";
+    $("#historialAnio").value=d.history?.year||"";
+    $("#historialPeriodo").value=d.history?.period||"";
+    renderAsistencia(d);
 
     $$("#estadoSelector [data-set-state]").forEach(b=>{b.classList.toggle("activo",b.dataset.setState===d.state);if(["approved","inprogress"].includes(b.dataset.setState))b.disabled=bloqueado(r);});
     const pb=$("#estadoSelector [data-toggle-plan]");pb.classList.toggle("activo",d.planned);pb.textContent=d.planned?"Planificado ✓":"Planificar";
@@ -499,6 +506,19 @@
     const actions=$("#customCourseActions");actions.hidden=!custom;
   }
 
+  function renderEvaluaciones(d){
+    const wrap=$("#evaluacionesLista"),res=$("#evaluacionesResumen");if(!wrap||!res)return;
+    const items=d.assessments||[];
+    wrap.innerHTML=items.length?items.map((a,i)=>`<div class="evaluation-row" data-eval-index="${i}"><input class="ev-name" value="${escapeHtml(a.name)}" placeholder="Evaluación"><div class="ev-num"><input class="ev-weight" type="number" min="0" max="100" step="0.1" value="${a.weight||""}" placeholder="%"><span>%</span></div><input class="ev-grade" type="number" min="1" max="7" step="0.1" value="${a.grade??""}" placeholder="Nota"><button class="remove-eval" type="button" aria-label="Eliminar evaluación">×</button></div>`).join(""):'<p class="detalle-faltantes">Agrega tus evaluaciones y sus ponderaciones. La estructura la defines tú.</p>';
+    const valid=items.filter(a=>Number(a.weight)>0 && a.grade!=="" && Number(a.grade)>=1 && Number(a.grade)<=7);
+    const used=valid.reduce((t,a)=>t+Number(a.weight),0), weighted=valid.reduce((t,a)=>t+Number(a.weight)*Number(a.grade),0);
+    const avg=used?weighted/used:null, remaining=Math.max(0,100-used), target=4.0;
+    let needed="";
+    if(remaining>0&&used>0){const n=(target*100-weighted)/remaining;needed=` · Para cerrar con ${target.toFixed(1)}: ${n<=1?"ya alcanzas la meta":n>7?"no alcanza con el porcentaje restante":n.toFixed(2)}`;}
+    res.textContent=used?`Promedio ponderado actual: ${avg.toFixed(2)} · Evaluado: ${used.toFixed(1)}%${needed}`:"Aún no hay notas ponderadas.";
+  }
+  function renderAsistencia(d){const res=$("#asistenciaResumen");if(!res)return;const total=Number(d.attendance?.total||0),present=Number(d.attendance?.present||0),min=d.attendance?.minimum; if(!total){res.textContent="Ingresa las clases realizadas y tus asistencias.";return;}const pct=Math.min(100,Math.max(0,present/total*100));let msg=`Asistencia actual: ${pct.toFixed(1)}% (${present}/${total})`;if(min!==""&&min!=null){msg+=` · Exigencia ingresada: ${Number(min).toFixed(0)}% · ${pct>=Number(min)?"Cumples actualmente":"Aún no alcanzas el mínimo"}`;}res.textContent=msg;}
+  function saveTools(){if(!cursoActivo)return;guardarDatos();window.dispatchEvent(new CustomEvent("malla:datachange"));}
   function obtenerRutas(id){
     const r=cursosPorId.get(id),req=obtenerRequisitos(r);if(!req.length)return[];const out=[];
     function walk(x,path,seen){if(seen.has(x))return;const nr=cursosPorId.get(x),pr=obtenerRequisitos(nr);if(!pr.length){out.push([...path,x]);return;}pr.forEach(p=>walk(p,[...path,x],new Set([...seen,x])));}
@@ -506,8 +526,13 @@
   }
 
   $("#estadoSelector").addEventListener("click",e=>{const st=e.target.closest("[data-set-state]")?.dataset.setState;if(st&&cursoActivo)cambiarEstado(cursoActivo,st);if(e.target.closest("[data-toggle-plan]")&&cursoActivo)togglePlan(cursoActivo);});
-  $("#detalleNota").addEventListener("input",e=>{if(!cursoActivo)return;cursoData(cursoActivo.dataset.id).grade=e.target.value;guardarDatos();actualizarDashboard();});
-  $("#detalleComentario").addEventListener("input",e=>{if(!cursoActivo)return;cursoData(cursoActivo.dataset.id).note=e.target.value;guardarDatos();});
+  $("#detalleNota").addEventListener("input",e=>{if(!cursoActivo)return;cursoData(cursoActivo.dataset.id).grade=e.target.value;guardarDatos();actualizarDashboard();window.dispatchEvent(new CustomEvent("malla:datachange"));});
+  $("#detalleComentario").addEventListener("input",e=>{if(!cursoActivo)return;cursoData(cursoActivo.dataset.id).note=e.target.value;guardarDatos();window.dispatchEvent(new CustomEvent("malla:datachange"));});
+  $("#agregarEvaluacionBtn")?.addEventListener("click",()=>{if(!cursoActivo)return;const d=cursoData(cursoActivo.dataset.id);d.assessments.push({id:`ev-${Date.now()}`,name:"",weight:0,grade:""});renderEvaluaciones(d);saveTools();});
+  $("#evaluacionesLista")?.addEventListener("input",e=>{if(!cursoActivo)return;const row=e.target.closest("[data-eval-index]");if(!row)return;const d=cursoData(cursoActivo.dataset.id),a=d.assessments[Number(row.dataset.evalIndex)];if(!a)return;if(e.target.classList.contains("ev-name"))a.name=e.target.value;if(e.target.classList.contains("ev-weight"))a.weight=Number(e.target.value||0);if(e.target.classList.contains("ev-grade"))a.grade=e.target.value===""?"":Number(e.target.value);renderEvaluaciones(d);saveTools();});
+  $("#evaluacionesLista")?.addEventListener("click",e=>{const b=e.target.closest(".remove-eval");if(!b||!cursoActivo)return;const row=b.closest("[data-eval-index]"),d=cursoData(cursoActivo.dataset.id);d.assessments.splice(Number(row.dataset.evalIndex),1);renderEvaluaciones(d);saveTools();});
+  ["asistenciaTotal","asistenciaPresentes","asistenciaMinima"].forEach(id=>$("#"+id)?.addEventListener("input",()=>{if(!cursoActivo)return;const d=cursoData(cursoActivo.dataset.id);d.attendance={total:Number($("#asistenciaTotal").value||0),present:Number($("#asistenciaPresentes").value||0),minimum:$("#asistenciaMinima").value===""?"":Number($("#asistenciaMinima").value)};renderAsistencia(d);saveTools();}));
+  ["historialAnio","historialPeriodo"].forEach(id=>$("#"+id)?.addEventListener("input",()=>{if(!cursoActivo)return;const d=cursoData(cursoActivo.dataset.id);d.history={year:$("#historialAnio").value,period:$("#historialPeriodo").value};saveTools();}));
   $("#editarCustomBtn").addEventListener("click",()=>{if(!cursoActivo||cursoActivo.dataset.custom!=="1")return;const c=customPorUid(cursoActivo.dataset.id);cerrarModal(el.modalRamo);abrirFormularioRamo(c);});
   $("#eliminarCustomBtn").addEventListener("click",async()=>{if(!cursoActivo||cursoActivo.dataset.custom!=="1")return;const c=customPorUid(cursoActivo.dataset.id);if(!(await confirmar(`¿Eliminar ${c.name} de tu malla personal?`)))return;delete data.courses[c.uid];data.customCourses=data.customCourses.filter(x=>x.uid!==c.uid);cerrarModal(el.modalRamo);renderCustomCourses();sincronizarUI();mostrarToast("Ramo eliminado");});
 
@@ -549,12 +574,12 @@
     abrirGeneral(existing?"Editar ramo personal":"Agregar ramo a mi malla",`
       <form id="customCourseForm" class="custom-form">
         <div class="form-grid custom-form-grid">
-          <label>Tipo<select id="customTipo"><option value="fofu">FOFU / Formación Fundamental</option><option value="optativo">Optativo</option><option value="otro">Otro</option></select></label>
+          <label>Tipo<select id="customTipo"><option value="fofu">FOFU / Formación Fundamental</option><option value="optativo">Optativo</option></select></label>
           <label>Sigla<input id="customCodigo" required maxlength="16" placeholder="Ej. EPE075" value="${escapeHtml(c.code)}"></label>
           <label class="full">Nombre<input id="customNombre" required maxlength="140" placeholder="Nombre del ramo" value="${escapeHtml(c.name)}"></label>
           <label>Créditos<input id="customCreditos" required type="number" min="0" max="30" step="1" value="${escapeHtml(c.credits)}"></label>
           <label>Semestre real<select id="customSemestre">${opcionesSemestre(c.semester)}</select></label>
-          <label class="full">Cupo referencial<select id="customSlot"></select><small id="customReferencia"></small></label>
+          <label class="full stable-test-only">Cupo referencial<select id="customSlot"></select><small id="customReferencia"></small></label>
           <label>Estado<select id="customEstado"><option value="none">Disponible</option><option value="inprogress">Cursando</option><option value="approved">Aprobado</option></select></label>
           <label>Nota final<input id="customNota" type="number" min="1" max="7" step="0.1" value="${escapeHtml(d.grade)}" placeholder="Opcional"></label>
           <label class="full">Comentario<textarea id="customComentario" rows="3" placeholder="Opcional">${escapeHtml(d.note)}</textarea></label>
@@ -647,7 +672,7 @@
   $('#vistaBtn').addEventListener('click',()=>{data.preferences.view=data.preferences.view==='compact'?'normal':'compact';aplicarPreferencias();guardarDatos();});
   $('#ayudaBtn').addEventListener('click',()=>el.modalTutorial.hidden=false);
   $('#tutorialCerrarBtn').addEventListener('click',()=>{localStorage.setItem(TUTORIAL_KEY,'1');cerrarModal(el.modalTutorial);});
-  $('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v4.0.0',`<div class="general-list"><div class="general-item"><strong>Mint Garden v4</strong>Nueva navegación por secciones, dashboard, paleta por categorías, panel lateral y cuentas con sincronización opcional.</div><div class="general-item"><strong>Malla personal</strong>Agrega FOFUs, optativos u otros ramos con sigla, créditos, semestre real, estado, nota y comentario.</div><div class="general-item"><strong>Minor</strong>Selecciona uno de los Minors oficiales PUCV y agrega FOFUs desde su catálogo.</div><div class="general-item"><strong>Referencia oficial</strong>FOFU 1/2/3 se sugieren en 5°/6°/9° y Optativos 1/2/3/4 en 2°/5°/7°/9°, pero puedes ubicarlos donde realmente los cursaste.</div><div class="general-item"><strong>Backup e impresión</strong>Los ramos personales y el Minor ahora viajan en el backup y aparecen en impresión.</div><div class="general-item"><strong>Interacción</strong>Se conserva doble clic, botón i y cierre de modales corregidos de v3.0.2.</div></div>`));
+  $('#changelogBtn').addEventListener('click',()=>abrirGeneral('Cambios · v3.2.0 Stable',`<div class="general-list"><div class="general-item"><strong>Base v3.0.2</strong>Vuelve la malla como protagonista, conservando la corrección del doble clic y el botón de información.</div><div class="general-item"><strong>Cuentas opcionales</strong>Google, email o modo invitado; la cuenta permite sincronizar el progreso mediante Supabase.</div><div class="general-item"><strong>FOFUs, optativos y Minor</strong>Puedes agregar cursos complementarios y seguir el progreso de un Minor sin imponer el semestre referencial.</div><div class="general-item"><strong>Mi ramo</strong>Cada ramo puede guardar evaluaciones, asistencia e historial académico definidos por ti.</div><div class="general-item"><strong>Interfaz tranquila</strong>Colores uniformes por defecto y estados mediante bordes/badges. Las ideas visuales de v4 siguen en prueba en la versión de grupo focal.</div></div>`));
 
   // Confirmaciones/toast/reset
   function confirmar(texto){el.confirmTexto.textContent=texto;el.modalConfirm.hidden=false;return new Promise(resolve=>{confirmResolver=resolve;});}
@@ -657,8 +682,8 @@
   $('#reiniciarBtn').addEventListener('click',async()=>{if(!(await confirmar('¿Seguro que quieres reiniciar todo? Se borrarán estados, planificación, notas, comentarios, Minor y ramos personales.')))return;data=defaultData();guardarDatos();renderCustomCourses();aplicarPreferencias();sincronizarUI();mostrarToast('Progreso reiniciado');});
 
   // PWA / analytics
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#instalarBtn').hidden=false;});
-  $('#instalarBtn').addEventListener('click',async()=>{if(!deferredPrompt){mostrarToast('En iPhone/iPad usa Compartir → Añadir a pantalla de inicio');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#instalarBtn').hidden=true;});
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if($('#instalarBtn'))$('#instalarBtn').hidden=false;});
+  $('#instalarBtn')?.addEventListener('click',async()=>{if(!deferredPrompt){mostrarToast('En iPhone/iPad usa Compartir → Añadir a pantalla de inicio');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;if($('#instalarBtn'))$('#instalarBtn').hidden=true;});
   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
   function iniciarAnalytics(){const cfg=window.MALLA_CONFIG||{};if(!cfg.analyticsEnabled||!cfg.plausibleDomain)return;const s=document.createElement('script');s.defer=true;s.dataset.domain=cfg.plausibleDomain;s.src='https://plausible.io/js/script.js';document.head.append(s);}
   function escapeHtml(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}

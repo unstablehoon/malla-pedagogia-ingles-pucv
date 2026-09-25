@@ -1,34 +1,28 @@
-# Malla Pedagogía en Inglés PUCV — v4.0.0 Mint Garden
+# Malla Pedagogía en Inglés PUCV
 
-Rediseño completo de la malla interactiva no oficial de Pedagogía en Inglés PUCV.
+Este paquete contiene dos versiones publicables en el mismo GitHub Pages.
 
-## v4.0
-- Nueva interfaz **Mint Garden** inspirada en blush, sage, mint, vanilla y cacao.
-- Navegación por secciones: Inicio, Mi malla, Planificación, Minor & FOFUs, Progreso, Respaldo y Ajustes.
-- Landing/login visual con Google, email + contraseña y modo invitada.
-- Sincronización opcional entre dispositivos mediante Supabase.
-- `localStorage` se mantiene como respaldo local y modo invitada.
-- Panel lateral de detalle de ramo en escritorio.
-- Colores por categoría de ramo; los estados usan bordes, badges y tratamientos sin borrar la categoría.
-- Dashboard con KPIs y mini barra de progreso.
-- Vista dedicada para planificación, Minors/FOFUs y estadísticas por categoría.
-- FOFUs, optativos y otros ramos siguen siendo editables y se ubican en el semestre real escogido.
-- Semestres de FOFUs/optativos siguen siendo solo referencias, no restricciones.
-- Impresión y backups continúan disponibles.
+- `/` — **v3.2.0 Stable**: vuelve a la estructura tranquila de v3.0.2 y conserva las funciones marcadas como QUEDA en la checklist.
+- `/focus-group/` — **v4.0.0 Experimental**: versión Mint Garden completa para el grupo focal.
 
-## Supabase
-La app usa una **publishable key**, que está diseñada para ejecutarse en el frontend. La seguridad de los datos depende de las políticas RLS configuradas en Supabase.
+## Stable v3.2.0
 
-Nunca subas a este repositorio una `service_role`, `sb_secret_...`, contraseña de base de datos u otra clave secreta.
+Base visual v3.0.2, doble clic corregido, prerrequisitos, estados, búsqueda, filtros, planificación, Minor/FOFUs, cuentas opcionales con Supabase, sincronización, perfil/avatar, mini barra de progreso, backups, impresión, dark mode, vista compacta y herramientas personales por ramo (evaluaciones, asistencia e historial).
 
-## Publicar en GitHub Pages
-Sube todos los archivos y la carpeta `assets/` a la raíz del repositorio y reemplaza las versiones anteriores.
+Los elementos marcados TEST se dejaron fuera de la interfaz pública cuando era posible y permanecen en la versión experimental. La PWA instalable se prueba en v4; la stable conserva caché offline mediante service worker.
 
-Archivos nuevos en v4:
-- `v4.css`
-- `v4.js`
+## Sugerencias
 
-GitHub Pages debe seguir apuntando a `main` / `(root)`.
+La stable incluye un enlace discreto de sugerencias. Para guardar feedback en Supabase y habilitar la bandeja admin, ejecuta `SUPABASE_V32_MIGRATION.sql` una vez en SQL Editor. Después inicia sesión al menos una vez y ejecuta la línea final del archivo reemplazando `TU_CORREO` por tu correo.
 
-## Después de publicar
-Haz una recarga forzada (`Cmd + Shift + R` en macOS / `Ctrl + Shift + R` en Windows) porque la versión anterior podía quedar guardada por el service worker.
+## OAuth del grupo focal
+
+Si quieres probar login dentro de `/focus-group/`, agrega también esta URL a los Redirect URLs permitidos de Supabase:
+
+`https://unstablehoon.github.io/malla-pedagogia-ingles-pucv/focus-group/`
+
+El modo invitado funciona sin ese paso.
+
+## Seguridad
+
+El repositorio contiene solo la URL de Supabase y la publishable key de frontend. Nunca subas `service_role`, secretos OAuth ni la contraseña de la base de datos.

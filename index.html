@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#F7F3EE">
-  <meta name="description" content="Mint Garden v4: malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, Minors y sincronización opcional.">
+  <meta name="theme-color" content="#fcf7d9">
+  <meta name="description" content="Malla interactiva no oficial de Pedagogía en Inglés PUCV: progreso, prerrequisitos, planificación, notas y créditos.">
   <meta property="og:title" content="Malla Pedagogía en Inglés PUCV">
   <meta property="og:description" content="Malla interactiva con progreso, prerrequisitos, planificación y créditos.">
   <meta property="og:type" content="website">
@@ -13,14 +13,13 @@
   <meta name="twitter:card" content="summary_large_image">
   <title>Malla Pedagogía en Inglés PUCV</title>
 
-  <link rel="manifest" href="manifest.webmanifest">
+  <!-- PWA installability is being tested in the focus-group build; offline cache remains enabled. -->
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4.0.0">
-  <link rel="stylesheet" href="v4.css?v=4.0.0">
+  <link rel="stylesheet" href="styles.css?v=3.2.0"><link rel="stylesheet" href="stable.css?v=3.2.0">
 </head>
 <body>
   <header class="site-header no-print">
@@ -30,6 +29,7 @@
       <p class="subtitulo">Tu malla, tu progreso, tu planificación.</p>
     </div>
     <div class="header-actions">
+      <button class="account-chip" id="accountBtn" type="button" title="Cuenta y perfil"><span class="account-avatar" id="accountAvatar">O</span><span id="accountName">Invitada</span></button>
       <button class="icon-action" id="temaBtn" type="button" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
       <button class="icon-action" id="vistaBtn" type="button" title="Cambiar vista" aria-label="Cambiar vista">↔</button>
       <button class="icon-action" id="ayudaBtn" type="button" title="Cómo usar" aria-label="Cómo usar">?</button>
@@ -46,7 +46,7 @@
         <button class="btn secundario no-print" id="editarSemestreBtn" type="button">Semestre actual</button>
       </div>
 
-      <div class="stats-grid">
+      <div class="stats-grid stable-test-only">
         <div class="stat"><span class="stat-num" id="ramosAprobados">0</span><span class="stat-label">de <span id="ramosTotales">0</span> ramos</span></div>
         <div class="stat"><span class="stat-num" id="creditosAprobados">0</span><span class="stat-label">de <span id="creditosTotales">0</span> créditos</span></div>
         <div class="stat"><span class="stat-num" id="porcentaje">0%</span><span class="stat-label">completado</span></div>
@@ -608,12 +608,13 @@
   <footer>
     <div>
       <strong>Malla Pedagogía en Inglés PUCV</strong>
-      <span>Herramienta no oficial · v4.0.0 Mint Garden · septiembre 2026</span>
+      <span>Herramienta no oficial · v3.2.0 Stable · septiembre 2026</span>
     </div>
     <div class="footer-links no-print">
       <a href="https://github.com/unstablehoon/malla-pedagogia-ingles-pucv/issues/new" target="_blank" rel="noopener">Reportar error</a>
       <button id="changelogBtn" type="button">Cambios</button>
-      <button id="instalarBtn" type="button" hidden>Instalar app</button>
+      <a href="#" id="feedbackLink">Sugerencias</a>
+      
     </div>
   </footer>
 
@@ -637,12 +638,37 @@
         <label>Comentario<textarea id="detalleComentario" rows="3" placeholder="Profe, sección, recordatorio…"></textarea></label>
       </div>
 
+      <details class="course-tool" id="evaluacionesTool">
+        <summary>Calculadora de evaluaciones</summary>
+        <div class="tool-body">
+          <div id="evaluacionesLista"></div>
+          <button class="btn secundario small-btn" id="agregarEvaluacionBtn" type="button">+ Evaluación</button>
+          <div class="tool-summary" id="evaluacionesResumen"></div>
+        </div>
+      </details>
+      <details class="course-tool" id="asistenciaTool">
+        <summary>Asistencia</summary>
+        <div class="tool-body attendance-grid">
+          <label>Clases realizadas<input id="asistenciaTotal" type="number" min="0" step="1"></label>
+          <label>Asistencias<input id="asistenciaPresentes" type="number" min="0" step="1"></label>
+          <label>Exigencia (%)<input id="asistenciaMinima" type="number" min="0" max="100" step="1" placeholder="Ej. 75"></label>
+          <div class="tool-summary full" id="asistenciaResumen"></div>
+        </div>
+      </details>
+      <details class="course-tool" id="historialTool">
+        <summary>Historial académico</summary>
+        <div class="tool-body history-grid">
+          <label>Año<input id="historialAnio" type="number" min="2000" max="2100" step="1" placeholder="2026"></label>
+          <label>Periodo<select id="historialPeriodo"><option value="">—</option><option value="1">1er semestre</option><option value="2">2do semestre</option></select></label>
+        </div>
+      </details>
+
       <div class="detail-section"><h3>Prerrequisitos directos</h3><div id="detalleRequisitos" class="lista-requisitos"></div><p id="detalleFaltantes" class="detalle-faltantes"></p></div>
       <div class="detail-section"><h3>Ruta previa</h3><div id="detalleRutas" class="rutas-lista"></div></div>
       <div class="detail-section" id="detalleMinorWrap" hidden><h3>Minor</h3><div id="detalleMinor" class="chips"></div></div>
       <div class="detail-section"><h3>Desbloquea</h3><div id="detalleDesbloquea" class="chips"></div></div>
-      <div class="custom-course-actions" id="customCourseActions" hidden><button class="btn secundario" id="editarCustomBtn" type="button">Editar ramo</button><button class="btn peligro-suave" id="eliminarCustomBtn" type="button">Eliminar ramo</button></div>
-      <p class="autosave-note">Los cambios se guardan automáticamente. Con una cuenta conectada también se sincronizan en la nube.</p>
+      <div class="custom-course-actions stable-test-only" id="customCourseActions" hidden><button class="btn secundario" id="editarCustomBtn" type="button">Editar ramo</button><button class="btn peligro-suave" id="eliminarCustomBtn" type="button">Eliminar ramo</button></div>
+      <p class="autosave-note">Los cambios se guardan automáticamente en este dispositivo.</p>
     </section>
   </div>
 
@@ -678,7 +704,7 @@
         <div><strong>FOFUs y optativos</strong><span>Agrega manualmente tus cursos y ubícalos en el semestre real en que los tomaste.</span></div>
         <div><strong>Minor</strong><span>Selecciona tu Minor, revisa su catálogo de FOFUs y lleva el progreso de sus asignaturas.</span></div>
       </div>
-      <p class="tutorial-note">En modo invitada, tu información se guarda localmente. Con una cuenta, tu progreso se sincroniza de forma privada mediante Supabase; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
+      <p class="tutorial-note">Tu información se guarda localmente en tu navegador; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
       <button class="btn ancho" id="tutorialCerrarBtn" type="button">Entendido</button>
     </section>
   </div>
@@ -686,9 +712,9 @@
   <div class="toast-container no-print" id="toastContainer" aria-live="polite"></div>
   <input id="importInput" type="file" accept="application/json" hidden>
 
-  <script src="config.js?v=4.0.0"></script>
+  <script src="config.js?v=3.2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=4.0.0" defer></script>
-  <script src="v4.js?v=4.0.0" defer></script>
+  <script src="app.js?v=3.2.0" defer></script>
+  <script src="stable.js?v=3.2.0" defer></script>
 </body>
 </html>
