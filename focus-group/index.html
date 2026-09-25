@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F7F3EE">
+  <meta name="description" content="Mint Garden v4: malla interactiva no oficial de Pedagogía en Inglés PUCV con progreso, planificación, Minors y sincronización opcional.">
+  <meta property="og:title" content="Malla Pedagogía en Inglés PUCV">
+  <meta property="og:description" content="Malla interactiva con progreso, prerrequisitos, planificación y créditos.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://unstablehoon.github.io/malla-pedagogia-ingles-pucv/">
+  <meta property="og:image" content="https://unstablehoon.github.io/malla-pedagogia-ingles-pucv/assets/preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Malla Pedagogía en Inglés PUCV</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=4.0.0">
+  <link rel="stylesheet" href="v4.css?v=4.0.0">
+<style>.focus-banner{position:sticky;top:0;z-index:9999;text-align:center;padding:7px;background:#684f48;color:#fff8f4;font:600 10px Poppins,sans-serif;letter-spacing:.08em}</style></head>
+<body><div class="focus-banner">PROTOTIPO V4 · GRUPO FOCAL · esta versión es experimental</div>
+  <header class="site-header no-print">
+    <div>
+      <p class="eyebrow">PUCV · DRA 49/2021</p>
+      <h1>Pedagogía en Inglés</h1>
+      <p class="subtitulo">Tu malla, tu progreso, tu planificación.</p>
+    </div>
+    <div class="header-actions">
+      <button class="icon-action" id="temaBtn" type="button" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+      <button class="icon-action" id="vistaBtn" type="button" title="Cambiar vista" aria-label="Cambiar vista">↔</button>
+      <button class="icon-action" id="ayudaBtn" type="button" title="Cómo usar" aria-label="Cómo usar">?</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="dashboard" aria-label="Resumen de progreso">
+      <div class="dashboard-top">
+        <div>
+          <span class="label-mini">Avance actual</span>
+          <div class="resumen-general" id="resumenSemestre">Calculando avance…</div>
+        </div>
+        <button class="btn secundario no-print" id="editarSemestreBtn" type="button">Semestre actual</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat"><span class="stat-num" id="ramosAprobados">0</span><span class="stat-label">de <span id="ramosTotales">0</span> ramos</span></div>
+        <div class="stat"><span class="stat-num" id="creditosAprobados">0</span><span class="stat-label">de <span id="creditosTotales">0</span> créditos</span></div>
+        <div class="stat"><span class="stat-num" id="porcentaje">0%</span><span class="stat-label">completado</span></div>
+        <div class="stat"><span class="stat-num" id="cursandoCantidad">0</span><span class="stat-label"><span id="cursandoCreditos">0</span> cr. cursando</span></div>
+        <div class="stat"><span class="stat-num" id="planCantidad">0</span><span class="stat-label"><span id="planCreditos">0</span> cr. planificados</span></div>
+        <div class="stat"><span class="stat-num" id="promedioGeneral">—</span><span class="stat-label">promedio registrado</span></div>
+        <div class="stat"><span class="stat-num" id="extrasCantidad">0</span><span class="stat-label"><span id="extrasCreditos">0</span> cr. complementarios</span></div>
+        <div class="stat"><span class="stat-num" id="minorProgreso">—</span><span class="stat-label" id="minorLabel">Minor</span></div>
+      </div>
+
+      <div class="barra-fondo" id="barraFondo" role="progressbar" aria-label="Progreso de la malla" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="barra-progreso" id="barraProgreso"></div>
+      </div>
+
+      <div class="leyenda">
+        <span><i class="muestra disponible"></i>Disponible</span>
+        <span><i class="muestra cursando"></i>Cursando</span>
+        <span><i class="muestra planificado"></i>Planificado</span>
+        <span><i class="muestra aprobado"></i>Aprobado</span>
+        <span><i class="muestra bloqueado"></i>Bloqueado</span>
+      </div>
+    </section>
+
+    <section class="toolbar no-print" aria-label="Herramientas">
+      <div class="search-wrap">
+        <span aria-hidden="true">⌕</span>
+        <input id="buscador" type="search" placeholder="Buscar ramo o código…" autocomplete="off">
+      </div>
+      <select id="filtroEstado" aria-label="Filtrar por estado">
+        <option value="todos">Todos los estados</option>
+        <option value="disponible">Disponibles</option>
+        <option value="cursando">Cursando</option>
+        <option value="planificado">Planificados</option>
+        <option value="aprobado">Aprobados</option>
+        <option value="bloqueado">Bloqueados</option>
+      </select>
+      <select id="filtroSemestre" aria-label="Filtrar por semestre">
+        <option value="todos">Todos los semestres</option>
+        <option value="1">1° semestre</option><option value="2">2° semestre</option><option value="3">3° semestre</option><option value="4">4° semestre</option><option value="5">5° semestre</option><option value="6">6° semestre</option><option value="7">7° semestre</option><option value="8">8° semestre</option><option value="9">9° semestre</option><option value="10">10° semestre</option>
+      </select>
+      <select id="filtroArea" aria-label="Filtrar por área">
+        <option value="todas">Todas las áreas</option>
+        <option value="Didáctica">Didáctica</option><option value="Formación Fundamental">Formación Fundamental</option><option value="Formación Pedagógica">Formación Pedagógica</option><option value="Inglés">Inglés</option><option value="Lengua y Lingüística">Lengua y Lingüística</option><option value="Literatura y Cultura">Literatura y Cultura</option><option value="Práctica">Práctica</option><option value="FOFU">FOFU</option><option value="Optativo">Optativo</option><option value="Otro">Otro</option>
+      </select>
+      <button class="btn" id="puedoTomarBtn" type="button">¿Qué puedo tomar?</button>
+      <button class="btn" id="estadisticasBtn" type="button">Estadísticas</button>
+      <button class="btn" id="minorBtn" type="button">Minor y FOFUs</button>
+      <button class="btn" id="agregarRamoBtn" type="button">+ Agregar ramo</button>
+    </section>
+
+    <nav class="semester-nav no-print" aria-label="Ir a semestre">
+      <button type="button" data-go-sem="1">1</button><button type="button" data-go-sem="2">2</button><button type="button" data-go-sem="3">3</button><button type="button" data-go-sem="4">4</button><button type="button" data-go-sem="5">5</button><button type="button" data-go-sem="6">6</button><button type="button" data-go-sem="7">7</button><button type="button" data-go-sem="8">8</button><button type="button" data-go-sem="9">9</button><button type="button" data-go-sem="10">10</button>
+    </nav>
+
+    <section class="planner-strip no-print" id="plannerStrip">
+      <div><strong>Próximo semestre</strong><span id="plannerResumen">0 ramos · 0 créditos</span></div>
+      <button class="btn secundario" id="verPlanBtn" type="button">Ver planificación</button>
+    </section>
+
+    <div class="malla" id="malla">
+      
+      <section class="semestre" id="semestre-1" data-semestre="1">
+        <div class="semestre-titulo-wrap">
+          <h2>1° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="LCL105" data-semestre="1" data-creditos="3" data-area="Lengua y Lingüística" tabindex="0" aria-label="Pronunciación en Inglés">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Pronunciación en Inglés" title="Ver detalles">i</button>
+          <div class="codigo">LCL105</div>
+          <div class="nombre">Pronunciación en Inglés</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL121" data-semestre="1" data-creditos="6" data-area="Inglés" tabindex="0" aria-label="Inglés Nivel Principiante">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Principiante" title="Ver detalles">i</button>
+          <div class="codigo">LCL121</div>
+          <div class="nombre">Inglés Nivel Principiante</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL123" data-semestre="1" data-creditos="4" data-area="Literatura y Cultura" tabindex="0" aria-label="Introducción a la Diversidad Cultural en el Mundo Angloparlante">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Introducción a la Diversidad Cultural en el Mundo Angloparlante" title="Ver detalles">i</button>
+          <div class="codigo">LCL123</div>
+          <div class="nombre">Introducción a la Diversidad Cultural en el Mundo Angloparlante</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL126" data-semestre="1" data-creditos="3" data-area="Formación Fundamental" tabindex="0" aria-label="Taller de Comunicación Escrita en Castellano">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Taller de Comunicación Escrita en Castellano" title="Ver detalles">i</button>
+          <div class="codigo">LCL126</div>
+          <div class="nombre">Taller de Comunicación Escrita en Castellano</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="IER010" data-semestre="1" data-creditos="2" data-area="Formación Fundamental" tabindex="0" aria-label="Antropología Cristiana">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Antropología Cristiana" title="Ver detalles">i</button>
+          <div class="codigo">IER010</div>
+          <div class="nombre">Antropología Cristiana</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-2" data-semestre="2">
+        <div class="semestre-titulo-wrap">
+          <h2>2° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="LCL135" data-semestre="2" data-creditos="6" data-area="Inglés" data-requisitos="LCL121" tabindex="0" aria-label="Inglés Nivel Pre-Intermedio">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Pre-Intermedio" title="Ver detalles">i</button>
+          <div class="codigo">LCL135</div>
+          <div class="nombre">Inglés Nivel Pre-Intermedio</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL138" data-semestre="2" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL121" tabindex="0" aria-label="Gramática Inglesa 1">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Gramática Inglesa 1" title="Ver detalles">i</button>
+          <div class="codigo">LCL138</div>
+          <div class="nombre">Gramática Inglesa 1</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL139" data-semestre="2" data-creditos="3" data-area="Literatura y Cultura" tabindex="0" aria-label="Prácticas de Lectura y Literatura Juvenil">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Prácticas de Lectura y Literatura Juvenil" title="Ver detalles">i</button>
+          <div class="codigo">LCL139</div>
+          <div class="nombre">Prácticas de Lectura y Literatura Juvenil</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL145" data-semestre="2" data-creditos="3" data-area="Lengua y Lingüística" tabindex="0" aria-label="Lenguaje, Cognición y Sociedad">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Lenguaje, Cognición y Sociedad" title="Ver detalles">i</button>
+          <div class="codigo">LCL145</div>
+          <div class="nombre">Lenguaje, Cognición y Sociedad</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="IER020" data-semestre="2" data-creditos="2" data-area="Formación Fundamental" tabindex="0" aria-label="Ética Cristiana">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Ética Cristiana" title="Ver detalles">i</button>
+          <div class="codigo">IER020</div>
+          <div class="nombre">Ética Cristiana</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-3" data-semestre="3">
+        <div class="semestre-titulo-wrap">
+          <h2>3° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="LCL207" data-semestre="3" data-creditos="4" data-area="Didáctica" data-requisitos="LCL121" tabindex="0" aria-label="Introducción a la Didáctica del Inglés">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Introducción a la Didáctica del Inglés" title="Ver detalles">i</button>
+          <div class="codigo">LCL207</div>
+          <div class="nombre">Introducción a la Didáctica del Inglés</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL216" data-semestre="3" data-creditos="6" data-area="Inglés" data-requisitos="LCL135" tabindex="0" aria-label="Inglés Nivel Intermedio">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Intermedio" title="Ver detalles">i</button>
+          <div class="codigo">LCL216</div>
+          <div class="nombre">Inglés Nivel Intermedio</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL218" data-semestre="3" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL138" tabindex="0" aria-label="Gramática Inglesa 2">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Gramática Inglesa 2" title="Ver detalles">i</button>
+          <div class="codigo">LCL218</div>
+          <div class="nombre">Gramática Inglesa 2</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL266" data-semestre="3" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL121" tabindex="0" aria-label="Composición Escrita en Inglés 1">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Composición Escrita en Inglés 1" title="Ver detalles">i</button>
+          <div class="codigo">LCL266</div>
+          <div class="nombre">Composición Escrita en Inglés 1</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL268" data-semestre="3" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL135" tabindex="0" aria-label="Modelos de Adquisición de una Lengua Extranjera">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Modelos de Adquisición de una Lengua Extranjera" title="Ver detalles">i</button>
+          <div class="codigo">LCL268</div>
+          <div class="nombre">Modelos de Adquisición de una Lengua Extranjera</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-4" data-semestre="4">
+        <div class="semestre-titulo-wrap">
+          <h2>4° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="EPE1320" data-semestre="4" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="LCL207" tabindex="0" aria-label="Educar en y para la Diversidad">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Educar en y para la Diversidad" title="Ver detalles">i</button>
+          <div class="codigo">EPE1320</div>
+          <div class="nombre">Educar en y para la Diversidad</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL263" data-semestre="4" data-creditos="6" data-area="Inglés" data-requisitos="LCL216,LCL105" tabindex="0" aria-label="Inglés Nivel Intermedio Avanzado">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Intermedio Avanzado" title="Ver detalles">i</button>
+          <div class="codigo">LCL263</div>
+          <div class="nombre">Inglés Nivel Intermedio Avanzado</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="PRA101-70" data-semestre="4" data-creditos="4" data-area="Práctica" data-requisitos="LCL207" tabindex="0" aria-label="Práctica Docente Inicial">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Práctica Docente Inicial" title="Ver detalles">i</button>
+          <div class="codigo">PRA101-70</div>
+          <div class="nombre">Práctica Docente Inicial</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="PSI331" data-semestre="4" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="LCL207" tabindex="0" aria-label="Taller de Aprendizaje y Desarrollo Adolescente">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Taller de Aprendizaje y Desarrollo Adolescente" title="Ver detalles">i</button>
+          <div class="codigo">PSI331</div>
+          <div class="nombre">Taller de Aprendizaje y Desarrollo Adolescente</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-5" data-semestre="5">
+        <div class="semestre-titulo-wrap">
+          <h2>5° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="EPE1118" data-semestre="5" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="PRA101-70" tabindex="0" aria-label="Fundamentos Filosóficos y Sociales de la Educación">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Fundamentos Filosóficos y Sociales de la Educación" title="Ver detalles">i</button>
+          <div class="codigo">EPE1118</div>
+          <div class="nombre">Fundamentos Filosóficos y Sociales de la Educación</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL264" data-semestre="5" data-creditos="2" data-area="Lengua y Lingüística" data-requisitos="LCL218,LCL145" tabindex="0" aria-label="Gramática Inglesa 3">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Gramática Inglesa 3" title="Ver detalles">i</button>
+          <div class="codigo">LCL264</div>
+          <div class="nombre">Gramática Inglesa 3</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL272" data-semestre="5" data-creditos="4" data-area="Inglés" data-requisitos="LCL263" tabindex="0" aria-label="Inglés Nivel Avanzado 1">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Avanzado 1" title="Ver detalles">i</button>
+          <div class="codigo">LCL272</div>
+          <div class="nombre">Inglés Nivel Avanzado 1</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL273" data-semestre="5" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL216,LCL266,LCL126" tabindex="0" aria-label="Composición Escrita en Inglés 2">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Composición Escrita en Inglés 2" title="Ver detalles">i</button>
+          <div class="codigo">LCL273</div>
+          <div class="nombre">Composición Escrita en Inglés 2</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL466" data-semestre="5" data-creditos="3" data-area="Literatura y Cultura" data-requisitos="LCL216,LCL139,LCL123" tabindex="0" aria-label="Literaturas en Contacto en Lengua Inglesa">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Literaturas en Contacto en Lengua Inglesa" title="Ver detalles">i</button>
+          <div class="codigo">LCL466</div>
+          <div class="nombre">Literaturas en Contacto en Lengua Inglesa</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-6" data-semestre="6">
+        <div class="semestre-titulo-wrap">
+          <h2>6° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="PSI275" data-semestre="6" data-creditos="3" data-area="Formación Pedagógica" tabindex="0" aria-label="Psicología Social Aplicada en la Escuela y su Comunidad">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Psicología Social Aplicada en la Escuela y su Comunidad" title="Ver detalles">i</button>
+          <div class="codigo">PSI275</div>
+          <div class="nombre">Psicología Social Aplicada en la Escuela y su Comunidad</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="EPE1303" data-semestre="6" data-creditos="3" data-area="Formación Pedagógica" tabindex="0" aria-label="Teoría y Planificación Curricular">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Teoría y Planificación Curricular" title="Ver detalles">i</button>
+          <div class="codigo">EPE1303</div>
+          <div class="nombre">Teoría y Planificación Curricular</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL327" data-semestre="6" data-creditos="4" data-area="Lengua y Lingüística" data-requisitos="LCL268" tabindex="0" aria-label="Teorías y Modelos de Comprensión y Producción">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Teorías y Modelos de Comprensión y Producción" title="Ver detalles">i</button>
+          <div class="codigo">LCL327</div>
+          <div class="nombre">Teorías y Modelos de Comprensión y Producción</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL625" data-semestre="6" data-creditos="4" data-area="Inglés" data-requisitos="LCL272" tabindex="0" aria-label="Inglés Nivel Avanzado 2">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Nivel Avanzado 2" title="Ver detalles">i</button>
+          <div class="codigo">LCL625</div>
+          <div class="nombre">Inglés Nivel Avanzado 2</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL628" data-semestre="6" data-creditos="3" data-area="Lengua y Lingüística" data-requisitos="LCL263,LCL105" tabindex="0" aria-label="Fonética y Fonología Inglesa">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Fonética y Fonología Inglesa" title="Ver detalles">i</button>
+          <div class="codigo">LCL628</div>
+          <div class="nombre">Fonética y Fonología Inglesa</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL629" data-semestre="6" data-creditos="3" data-area="Didáctica" data-requisitos="PRA101-70" tabindex="0" aria-label="Planificación de Secuencias Didácticas en Inglés">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Planificación de Secuencias Didácticas en Inglés" title="Ver detalles">i</button>
+          <div class="codigo">LCL629</div>
+          <div class="nombre">Planificación de Secuencias Didácticas en Inglés</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-7" data-semestre="7">
+        <div class="semestre-titulo-wrap">
+          <h2>7° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="EPE1302" data-semestre="7" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="EPE1303" tabindex="0" aria-label="Evaluación del y para el Aprendizaje">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Evaluación del y para el Aprendizaje" title="Ver detalles">i</button>
+          <div class="codigo">EPE1302</div>
+          <div class="nombre">Evaluación del y para el Aprendizaje</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL308" data-semestre="7" data-creditos="2" data-area="Lengua y Lingüística" data-requisitos="LCL264" tabindex="0" aria-label="Géneros del Discurso">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Géneros del Discurso" title="Ver detalles">i</button>
+          <div class="codigo">LCL308</div>
+          <div class="nombre">Géneros del Discurso</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL630" data-semestre="7" data-creditos="3" data-area="Inglés" data-requisitos="LCL263" tabindex="0" aria-label="Inglés para la Comunicación en el Aula">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés para la Comunicación en el Aula" title="Ver detalles">i</button>
+          <div class="codigo">LCL630</div>
+          <div class="nombre">Inglés para la Comunicación en el Aula</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL633" data-semestre="7" data-creditos="3" data-area="Didáctica" data-requisitos="PSI275,LCL629" tabindex="0" aria-label="Didáctica del Manejo del Aula Diversa en Inglés">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Didáctica del Manejo del Aula Diversa en Inglés" title="Ver detalles">i</button>
+          <div class="codigo">LCL633</div>
+          <div class="nombre">Didáctica del Manejo del Aula Diversa en Inglés</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="PRA301-70" data-semestre="7" data-creditos="6" data-area="Práctica" data-requisitos="PSI331,LCL629,LCL263,PRA101-70,EPE1303" tabindex="0" aria-label="Práctica Docente Intermedia">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Práctica Docente Intermedia" title="Ver detalles">i</button>
+          <div class="codigo">PRA301-70</div>
+          <div class="nombre">Práctica Docente Intermedia</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-8" data-semestre="8">
+        <div class="semestre-titulo-wrap">
+          <h2>8° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="EPE1130" data-semestre="8" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="PRA301-70" tabindex="0" aria-label="Identidad Profesional Docente">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Identidad Profesional Docente" title="Ver detalles">i</button>
+          <div class="codigo">EPE1130</div>
+          <div class="nombre">Identidad Profesional Docente</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="EPE1342" data-semestre="8" data-creditos="3" data-area="Formación Pedagógica" data-requisitos="PRA301-70" tabindex="0" aria-label="Investigación Educativa y Pedagógica">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Investigación Educativa y Pedagógica" title="Ver detalles">i</button>
+          <div class="codigo">EPE1342</div>
+          <div class="nombre">Investigación Educativa y Pedagógica</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="EPE1400" data-semestre="8" data-creditos="2" data-area="Formación Pedagógica" tabindex="0" aria-label="Políticas Públicas Educativas y Gestión Escolar">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Políticas Públicas Educativas y Gestión Escolar" title="Ver detalles">i</button>
+          <div class="codigo">EPE1400</div>
+          <div class="nombre">Políticas Públicas Educativas y Gestión Escolar</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL634" data-semestre="8" data-creditos="4" data-area="Inglés" data-requisitos="LCL628,LCL625" tabindex="0" aria-label="Inglés Oral con Propósitos Profesionales">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Oral con Propósitos Profesionales" title="Ver detalles">i</button>
+          <div class="codigo">LCL634</div>
+          <div class="nombre">Inglés Oral con Propósitos Profesionales</div>
+          <div class="ramo-meta">
+            <span class="creditos">4 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL635" data-semestre="8" data-creditos="3" data-area="Literatura y Cultura" data-requisitos="LCL466,LCL272" tabindex="0" aria-label="Literatura Inglesa Clásica">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Literatura Inglesa Clásica" title="Ver detalles">i</button>
+          <div class="codigo">LCL635</div>
+          <div class="nombre">Literatura Inglesa Clásica</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL637" data-semestre="8" data-creditos="3" data-area="Didáctica" data-requisitos="LCL327,EPE1302" tabindex="0" aria-label="Didáctica de la Evaluación del Aprendizaje del Inglés como Lengua Extranjera">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Didáctica de la Evaluación del Aprendizaje del Inglés como Lengua Extranjera" title="Ver detalles">i</button>
+          <div class="codigo">LCL637</div>
+          <div class="nombre">Didáctica de la Evaluación del Aprendizaje del Inglés como Lengua Extranjera</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-9" data-semestre="9">
+        <div class="semestre-titulo-wrap">
+          <h2>9° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="EPE1132" data-semestre="9" data-creditos="2" data-area="Formación Pedagógica" tabindex="0" aria-label="Tecnologías Digitales para el Aprendizaje y el Desarrollo Profesional Docente">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Tecnologías Digitales para el Aprendizaje y el Desarrollo Profesional Docente" title="Ver detalles">i</button>
+          <div class="codigo">EPE1132</div>
+          <div class="nombre">Tecnologías Digitales para el Aprendizaje y el Desarrollo Profesional Docente</div>
+          <div class="ramo-meta">
+            <span class="creditos">2 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL638" data-semestre="9" data-creditos="3" data-area="Inglés" data-requisitos="LCL273,LCL625,LCL308" tabindex="0" aria-label="Inglés Escrito con Propósitos Profesionales">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Inglés Escrito con Propósitos Profesionales" title="Ver detalles">i</button>
+          <div class="codigo">LCL638</div>
+          <div class="nombre">Inglés Escrito con Propósitos Profesionales</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL639" data-semestre="9" data-creditos="6" data-area="Formación Pedagógica" data-requisitos="LCL637,EPE1342,EPE1130" tabindex="0" aria-label="Proyecto de Título">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Proyecto de Título" title="Ver detalles">i</button>
+          <div class="codigo">LCL639</div>
+          <div class="nombre">Proyecto de Título</div>
+          <div class="ramo-meta">
+            <span class="creditos">6 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="ramo" data-id="LCL645" data-semestre="9" data-creditos="3" data-area="Didáctica" data-requisitos="PRA301-70" tabindex="0" aria-label="Diseño de Materiales Didácticos del Inglés para Aulas Diversas">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Diseño de Materiales Didácticos del Inglés para Aulas Diversas" title="Ver detalles">i</button>
+          <div class="codigo">LCL645</div>
+          <div class="nombre">Diseño de Materiales Didácticos del Inglés para Aulas Diversas</div>
+          <div class="ramo-meta">
+            <span class="creditos">3 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+      <section class="semestre" id="semestre-10" data-semestre="10">
+        <div class="semestre-titulo-wrap">
+          <h2>10° Semestre</h2>
+          <div class="semestre-progreso" aria-live="polite"></div>
+        </div>
+        
+        <article class="ramo" data-id="PRA601-70" data-semestre="10" data-creditos="16" data-area="Práctica" data-requisitos="PRA301-70,EPE1302,EPE1320,EPE1342,EPE1132,LCL630,LCL633,LCL634,LCL635,LCL638,LCL639,LCL645" tabindex="0" aria-label="Práctica Docente Final">
+          <button class="ramo-info-btn" type="button" aria-label="Ver detalles de Práctica Docente Final" title="Ver detalles">i</button>
+          <div class="codigo">PRA601-70</div>
+          <div class="nombre">Práctica Docente Final</div>
+          <div class="ramo-meta">
+            <span class="creditos">16 créditos</span>
+            <span class="ramo-estado-badge" aria-hidden="true"></span>
+          </div>
+        </article>
+      </section>
+    </div>
+
+    <section class="actions-panel no-print">
+      <button class="btn" id="compartirBtn" type="button">Compartir avance</button>
+      <button class="btn" id="tarjetaBtn" type="button">Crear tarjeta</button>
+      <button class="btn" id="imprimirBtn" type="button">Imprimir</button>
+      <button class="btn" id="datosBtn" type="button">Backup y datos</button>
+      <button class="btn peligro-suave" id="reiniciarBtn" type="button">Reiniciar progreso</button>
+    </section>
+
+    <section class="print-summary" id="printSummary" aria-hidden="true"></section>
+  </main>
+
+  <footer>
+    <div>
+      <strong>Malla Pedagogía en Inglés PUCV</strong>
+      <span>Herramienta no oficial · v4.0.0 Mint Garden · septiembre 2026</span>
+    </div>
+    <div class="footer-links no-print">
+      <a href="https://github.com/unstablehoon/malla-pedagogia-ingles-pucv/issues/new" target="_blank" rel="noopener">Reportar error</a>
+      <button id="changelogBtn" type="button">Cambios</button>
+      <button id="instalarBtn" type="button" hidden>Instalar app</button>
+    </div>
+  </footer>
+
+  <!-- Modal de ramo -->
+  <div class="modal-fondo" id="modalRamo" hidden>
+    <section class="modal-card modal-ramos" role="dialog" aria-modal="true" aria-labelledby="detalleNombre">
+      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>
+      <div class="detalle-codigo" id="detalleCodigo"></div>
+      <h2 id="detalleNombre"></h2>
+      <div class="modal-info"><span id="detalleCreditos"></span><span id="detalleArea"></span><span id="detalleTipo" hidden></span><span id="detalleEstado"></span></div>
+
+      <div class="estado-selector" id="estadoSelector">
+        <button type="button" data-set-state="none">Disponible</button>
+        <button type="button" data-set-state="inprogress">Cursando</button>
+        <button type="button" data-set-state="approved">Aprobado</button>
+        <button type="button" data-toggle-plan>Planificar</button>
+      </div>
+
+      <div class="form-grid">
+        <label>Nota final (opcional)<input id="detalleNota" type="number" min="1" max="7" step="0.1" placeholder="Ej. 5.8"></label>
+        <label>Comentario<textarea id="detalleComentario" rows="3" placeholder="Profe, sección, recordatorio…"></textarea></label>
+      </div>
+
+      <div class="detail-section"><h3>Prerrequisitos directos</h3><div id="detalleRequisitos" class="lista-requisitos"></div><p id="detalleFaltantes" class="detalle-faltantes"></p></div>
+      <div class="detail-section"><h3>Ruta previa</h3><div id="detalleRutas" class="rutas-lista"></div></div>
+      <div class="detail-section" id="detalleMinorWrap" hidden><h3>Minor</h3><div id="detalleMinor" class="chips"></div></div>
+      <div class="detail-section"><h3>Desbloquea</h3><div id="detalleDesbloquea" class="chips"></div></div>
+      <div class="custom-course-actions" id="customCourseActions" hidden><button class="btn secundario" id="editarCustomBtn" type="button">Editar ramo</button><button class="btn peligro-suave" id="eliminarCustomBtn" type="button">Eliminar ramo</button></div>
+      <p class="autosave-note">Los cambios se guardan automáticamente. Con una cuenta conectada también se sincronizan en la nube.</p>
+    </section>
+  </div>
+
+  <!-- Modal genérico -->
+  <div class="modal-fondo" id="modalGeneral" hidden>
+    <section class="modal-card modal-general" role="dialog" aria-modal="true" aria-labelledby="modalGeneralTitulo">
+      <button class="cerrar-modal" data-close-modal type="button" aria-label="Cerrar"><span aria-hidden="true">×</span></button>
+      <h2 id="modalGeneralTitulo"></h2>
+      <div id="modalGeneralContenido"></div>
+    </section>
+  </div>
+
+  <!-- Confirmación bonita -->
+  <div class="modal-fondo" id="modalConfirm" hidden>
+    <section class="modal-card confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitulo">
+      <h2 id="confirmTitulo">Confirmar</h2>
+      <p id="confirmTexto"></p>
+      <div class="modal-actions"><button class="btn secundario" id="confirmCancelar" type="button">Cancelar</button><button class="btn peligro" id="confirmAceptar" type="button">Continuar</button></div>
+    </section>
+  </div>
+
+  <!-- Tutorial -->
+  <div class="modal-fondo" id="modalTutorial" hidden>
+    <section class="modal-card tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorialTitulo">
+      <h2 id="tutorialTitulo">Tu malla, pero útil de verdad</h2>
+      <div class="tutorial-grid">
+        <div><strong>1 clic</strong><span>Marca o desmarca un ramo como aprobado.</span></div>
+        <div><strong>Botón i</strong><span>Abre detalles, notas, estado y prerrequisitos.</span></div>
+        <div><strong>Cursando</strong><span>Registra tu carga actual sin desbloquear requisitos.</span></div>
+        <div><strong>Planificar</strong><span>Arma tu próximo semestre y calcula créditos.</span></div>
+        <div><strong>Backup</strong><span>Exporta tus datos si cambias de navegador o computador.</span></div>
+        <div><strong>Imprimir</strong><span>Genera una malla rosita con tus estados.</span></div>
+        <div><strong>FOFUs y optativos</strong><span>Agrega manualmente tus cursos y ubícalos en el semestre real en que los tomaste.</span></div>
+        <div><strong>Minor</strong><span>Selecciona tu Minor, revisa su catálogo de FOFUs y lleva el progreso de sus asignaturas.</span></div>
+      </div>
+      <p class="tutorial-note">En modo invitada, tu información se guarda localmente. Con una cuenta, tu progreso se sincroniza de forma privada mediante Supabase; no se envía a la universidad. Los semestres sugeridos de FOFUs y optativos son solo una referencia de la malla oficial: puedes ubicarlos donde realmente los cursaste.</p>
+      <button class="btn ancho" id="tutorialCerrarBtn" type="button">Entendido</button>
+    </section>
+  </div>
+
+  <div class="toast-container no-print" id="toastContainer" aria-live="polite"></div>
+  <input id="importInput" type="file" accept="application/json" hidden>
+
+  <script src="config.js?v=4.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js?v=4.0.0" defer></script>
+  <script src="v4.js?v=4.0.0" defer></script>
+</body>
+</html>
